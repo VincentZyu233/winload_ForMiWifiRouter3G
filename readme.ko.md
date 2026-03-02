@@ -89,8 +89,9 @@ where win-nload # CMD
 ```
 > 💡 기존 Windows Console 대신 [Windows Terminal](https://github.com/microsoft/terminal) 사용을 권장합니다. CJK 문자 렌더링과 TUI 환경이 더 우수합니다.
 > ```powershell
-> scoop bucket add extras
-> scoop install windows-terminal
+> scoop bucket add versions
+> scoop install windows-terminal-preview
+> wtp
 > ```
 
 ### Arch Linux (AUR):

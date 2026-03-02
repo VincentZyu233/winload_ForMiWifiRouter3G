@@ -90,8 +90,9 @@ where win-nload # CMD
 ```
 > 💡 Recommended: use [Windows Terminal](https://github.com/microsoft/terminal) instead of the legacy Windows Console for correct CJK character rendering and better TUI experience.
 > ```powershell
-> scoop bucket add extras
-> scoop install windows-terminal
+> scoop bucket add versions
+> scoop install windows-terminal-preview
+> wtp
 > ```
 
 ### Arch Linux (AUR):

@@ -371,6 +371,34 @@ jobs:
             echo "| **x86_64** | [exe](${BASE_URL}/winload-windows-x86_64-${VERSION}.exe) | [binary](${BASE_URL}/winload-linux-x86_64-${VERSION}) · [deb](${BASE_URL}/winload-linux-x86_64-${VERSION}.deb) · [rpm](${BASE_URL}/winload-linux-x86_64-${VERSION}.rpm) | [binary](${BASE_URL}/winload-macos-x86_64-${VERSION}) |"
             echo "| **ARM64** | [exe](${BASE_URL}/winload-windows-aarch64-${VERSION}.exe) | [binary](${BASE_URL}/winload-linux-aarch64-${VERSION}) · [deb](${BASE_URL}/winload-linux-aarch64-${VERSION}.deb) · [rpm](${BASE_URL}/winload-linux-aarch64-${VERSION}.rpm) | [binary](${BASE_URL}/winload-macos-aarch64-${VERSION}) |"
             echo ""
+
+            # 提取不带 v 前缀的版本号
+            PLAIN_VER="${VERSION#v}"
+            # PyPI 版本号: PEP 440 规范化 (0.1.7-rc.10 -> 0.1.7rc10)
+            PYPI_VER=$(echo "$PLAIN_VER" | sed 's/-rc\./rc/')
+
+            echo "### 📥 Quick Install"
+            echo ""
+            echo "**Python (pip):**"
+            echo '```bash'
+            echo "pip install winload==${PYPI_VER}"
+            echo "# or with uv"
+            echo "uv pip install winload==${PYPI_VER}"
+            echo '```'
+            echo "> 📄 [PyPI](https://pypi.org/project/winload/${PYPI_VER}/)"
+            echo ""
+            echo "**npm (cross-platform):**"
+            echo '```bash'
+            echo "npm install -g @vincentzyuapps/winload@${PLAIN_VER}"
+            echo '```'
+            echo "> 📄 [npm](https://www.npmjs.com/package/@vincentzyuapps/winload/v/${PLAIN_VER})"
+            echo ""
+            echo "**Cargo (build from source):**"
+            echo '```bash'
+            echo "cargo install winload@${PLAIN_VER}"
+            echo '```'
+            echo "> 📄 [crates.io](https://crates.io/crates/winload/${PLAIN_VER})"
+            echo ""
             echo "**Windows (Scoop):**"
             echo '```powershell'
             echo "scoop bucket add vincentzyu https://github.com/VincentZyuApps/scoop-bucket"
@@ -387,6 +415,8 @@ jobs:
             echo "**One-liner install for some Linux distros (Debian/Ubuntu/RHEL/Fedora and derivatives):**"
             echo '```bash'
             echo "curl -fsSL https://raw.githubusercontent.com/${REPO}/main/docs/install_scripts/install.sh | bash"
+            echo "# or install this specific version:"
+            echo "WINLOAD_VERSION=${VERSION} bash -c \"\\\$(curl -fsSL https://raw.githubusercontent.com/${REPO}/main/docs/install_scripts/install.sh)\""
             echo '```'
             echo "> 📄 [View install script source](https://github.com/${REPO}/blob/main/docs/install_scripts/install.sh)"
             echo ""

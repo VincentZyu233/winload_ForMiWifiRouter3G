@@ -1,6 +1,7 @@
 #!/bin/bash
 # winload installer — supports apt (deb) and dnf (rpm) on x86_64 / aarch64
 # Usage: curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/install_scripts/install.sh | bash
+# Install specific version: WINLOAD_VERSION=v0.1.7-rc.10 bash -c "$(curl -fsSL https://...)"
 set -e
 
 REPO="VincentZyuApps/winload"
@@ -51,14 +52,19 @@ fi
 
 echo "🔍 Detected: arch=$ARCH pkg_mgr=$PKG_MGR"
 
-# ── Fetch latest release version ─────────────────────────
-echo "📡 Fetching latest version..."
-VERSION=$(curl -fsSL "$API_URL" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-if [ -z "$VERSION" ]; then
-  echo "❌ Failed to fetch latest version from GitHub API."
-  exit 1
+# ── Fetch release version ─────────────────────────────────
+if [ -n "${WINLOAD_VERSION:-}" ]; then
+  VERSION="$WINLOAD_VERSION"
+  echo "📌 Using specified version: $VERSION"
+else
+  echo "📡 Fetching latest version..."
+  VERSION=$(curl -fsSL "$API_URL" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+  if [ -z "$VERSION" ]; then
+    echo "❌ Failed to fetch latest version from GitHub API."
+    exit 1
+  fi
+  echo "📦 Latest version: $VERSION"
 fi
-echo "📦 Latest version: $VERSION"
 
 # ── Download & Install ───────────────────────────────────
 BASE_URL="https://github.com/${REPO}/releases/download/${VERSION}"

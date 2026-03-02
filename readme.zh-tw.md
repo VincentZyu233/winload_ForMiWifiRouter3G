@@ -90,8 +90,9 @@ where win-nload # CMD
 ```
 > 💡 建議使用 [Windows Terminal](https://github.com/microsoft/terminal) 而非舊版 Windows Console，以獲得正確的中文字元渲染和更好的 TUI 體驗。
 > ```powershell
-> scoop bucket add extras
-> scoop install windows-terminal
+> scoop bucket add versions
+> scoop install windows-terminal-preview
+> wtp
 > ```
 
 ### Arch Linux (AUR):

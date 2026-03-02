@@ -1,5 +1,5 @@
 /**
- * winload-rust-bin — binary path resolver
+ * @vincentzyuapps/winload — binary path resolver
  *
  * npm 安装时会根据 optionalDependencies 中各平台包的 os/cpu 字段，
  * 仅下载与当前平台匹配的那一个。此模块负责定位该平台包中的二进制。
@@ -17,12 +17,12 @@ const path = require("path");
  * value: npm 平台包名
  */
 const PLATFORMS = {
-  "win32-x64":    "winload-rust-bin-win32-x64",
-  "win32-arm64":  "winload-rust-bin-win32-arm64",
-  "linux-x64":    "winload-rust-bin-linux-x64",
-  "linux-arm64":  "winload-rust-bin-linux-arm64",
-  "darwin-x64":   "winload-rust-bin-darwin-x64",
-  "darwin-arm64":  "winload-rust-bin-darwin-arm64",
+  "win32-x64":    "@vincentzyuapps/winload-win32-x64",
+  "win32-arm64":  "@vincentzyuapps/winload-win32-arm64",
+  "linux-x64":    "@vincentzyuapps/winload-linux-x64",
+  "linux-arm64":  "@vincentzyuapps/winload-linux-arm64",
+  "darwin-x64":   "@vincentzyuapps/winload-darwin-x64",
+  "darwin-arm64":  "@vincentzyuapps/winload-darwin-arm64",
 };
 
 /**
@@ -50,7 +50,7 @@ function getBinaryPath() {
   } catch {
     throw new Error(
       `winload: platform package "${pkg}" not found\n` +
-      `Try reinstalling: npm install winload-rust-bin\n` +
+      `Try reinstalling: npm install @vincentzyuapps/winload\n` +
       `Or download manually: https://github.com/VincentZyuApps/winload/releases`
     );
   }
