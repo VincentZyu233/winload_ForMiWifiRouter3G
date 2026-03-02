@@ -20,7 +20,8 @@
     "rust"
   ],
   "bin": {
-    "winload": "bin.js"
+    "winload": "bin.js",
+    "win-nload": "bin.js"
   },
   "main": "index.js",
   "files": [

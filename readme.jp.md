@@ -5,7 +5,7 @@
 > Linuxの「nload」にインスパイアされた、軽量でリアルタイムなネットワーク帯域幅およびトラフィック監視用CLIツールです。
 
 > **[📖 English](readme.md)**
-> **[📖 简体中文(大陸)](readme.zh-cn.md)**
+> **[📖 简体中文(大陆)](readme.zh-cn.md)**
 > **[📖 繁體中文(台灣)](readme.zh-tw.md)**
 > **[📖 日本語](readme.jp.md)**
 > **[📖 한국어](readme.ko.md)**
@@ -51,30 +51,48 @@ https://github.com/rolandriegel/nload
 ### Python (pip)
 ```bash
 pip install winload
+# uv の使用を推奨：
+# https://docs.astral.sh/uv/getting-started/installation/
+# https://gitee.com/wangnov/uv-custom/releases
+uv venv
+uv pip install winload
+uv run winload
+uv run python -c "import shutil; print(shutil.which('winload'))"
 ```
 
 ## 📥 Rust 版 インストール（推奨）
 ### npm (クロスプラットフォーム)
 ```bash
 npm install -g winload-rust-bin
+npm list -g winload-rust-bin
+# Windows では System32\winload.exe との競合を避けるため win-nload を使用
+# Linux/macOS では winload と win-nload のどちらも使用可能
 # または npx を直接使用
 npx winload-rust-bin
 ```
+> ⚠️ 本パッケージは今後 `@vincentzyuapps/winload` へ移行予定です。[GitHub Packages](https://github.com/features/packages) の仕様に対応するためです。
+
 > 6つのプリコンパイル済みバイナリを含む：x86_64 & ARM64 対応、Windows・Linux・macOS に対応。
 
 ### Cargo (ソースからビルド)
 ```bash
 cargo install winload
+cargo install --list
 ```
 ### Windows (Scoop)
 ```powershell
 scoop bucket add vincentzyu https://github.com/VincentZyuApps/scoop-bucket
 scoop install winload
+# バイナリファイルを実行
+win-nload
+Get-Command win-nload # Powershell
+where win-nload # CMD
 ```
 
 ### Arch Linux (AUR):
 ```bash
-paru -S winload-bin
+paru -S winload-rust-bin
+which winload
 ```
 
 ### Linux (ワンライナー)
@@ -83,6 +101,7 @@ paru -S winload-bin
 > Fedora/RHEL およびその派生版（Rocky Linux, AlmaLinux, CentOS Stream等）をサポート (dnf)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/install_scripts/install.sh | bash
+which winload
 ```
 > 📄 [インストールスクリプトのソースを表示](https://github.com/VincentZyuApps/winload/blob/main/docs/install_scripts/install.sh)
 
@@ -95,11 +114,13 @@ curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/in
 sudo dpkg -i ./winload_*_amd64.deb
 # または apt を使用（依存関係を自動解決）
 sudo apt install ./winload_*_amd64.deb
+which winload
 ```
 
 **RPM (Fedora/RHEL):**
 ```bash
 sudo dnf install ./winload-*-1.x86_64.rpm
+which winload
 ```
 
 **または、[GitHub Releases](https://github.com/VincentZyuApps/winload/releases) からバイナリを直接ダウンロードしてください。**

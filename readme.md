@@ -51,30 +51,48 @@ https://github.com/rolandriegel/nload
 ### Python (pip)
 ```bash
 pip install winload
+# recommend use uv:
+# https://docs.astral.sh/uv/getting-started/installation/
+# https://gitee.com/wangnov/uv-custom/releases
+uv venv
+uv pip install winload
+uv run winload
+uv run python -c "import shutil; print(shutil.which('winload'))"
 ```
 
 ## 📥 Rust Edition Installation (recommended)
 ### npm (cross-platform)
 ```bash
 npm install -g winload-rust-bin
+npm list -g winload-rust-bin
+# on Windows, use win-nload to avoid conflict with System32\winload.exe
+# on Linux/macOS, both winload and win-nload work
 # or use npx directly
 npx winload-rust-bin
 ```
+> ⚠️ This package will be migrated to `@vincentzyuapps/winload` in a future version for [GitHub Packages](https://github.com/features/packages) compatibility.
+
 > Includes 6 precompiled binaries for x86_64 & ARM64 across Windows, Linux, and macOS.
 
 ### Cargo (Build from source)
 ```bash
 cargo install winload
+cargo install --list
 ```
 ### Windows (Scoop)
 ```powershell
 scoop bucket add vincentzyu https://github.com/VincentZyuApps/scoop-bucket
 scoop install winload
+# execute bin file
+win-nload
+Get-Command win-nload # Powershell
+where win-nload # CMD
 ```
 
 ### Arch Linux (AUR):
 ```bash
 paru -S winload-rust-bin
+which winload
 ```
 
 ### Linux (one-liner)
@@ -83,6 +101,7 @@ paru -S winload-rust-bin
 > Supports Fedora/RHEL and derivatives — Rocky Linux, AlmaLinux, CentOS Stream, etc. (dnf)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/install_scripts/install.sh | bash
+which winload
 ```
 > 📄 [View install script source](https://github.com/VincentZyuApps/winload/blob/main/docs/install_scripts/install.sh)
 
@@ -95,11 +114,13 @@ curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/in
 sudo dpkg -i ./winload_*_amd64.deb
 # or use apt (auto-resolves dependencies)
 sudo apt install ./winload_*_amd64.deb
+which winload
 ```
 
 **RPM (Fedora/RHEL):**
 ```bash
 sudo dnf install ./winload-*-1.x86_64.rpm
+which winload
 ```
 
 **Or download binaries directly from [GitHub Releases](https://github.com/VincentZyuApps/winload/releases).**

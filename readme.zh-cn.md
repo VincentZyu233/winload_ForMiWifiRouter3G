@@ -51,30 +51,48 @@ https://github.com/rolandriegel/nload
 ### Python (pip)
 ```bash
 pip install winload
+# 推荐使用 uv：
+# https://docs.astral.sh/uv/getting-started/installation/
+# https://gitee.com/wangnov/uv-custom/releases
+uv venv
+uv pip install winload
+uv run winload
+uv run python -c "import shutil; print(shutil.which('winload'))"
 ```
 
 ## 📥 Rust 版本安装（推荐）
 ### npm (跨平台)
 ```bash
 npm install -g winload-rust-bin
+npm list -g winload-rust-bin
+# 在 Windows 上使用 win-nload 以避免与 System32\winload.exe 冲突
+# 在 Linux/macOS 上，winload 和 win-nload 均可使用
 # 或直接使用 npx
 npx winload-rust-bin
 ```
+> ⚠️ 此包将在未来版本迁移至 `@vincentzyuapps/winload`，以兼容 [GitHub Packages](https://github.com/features/packages) 规范。
+
 > 包含 6 个预编译二进制文件：x86_64 & ARM64 版本，支持 Windows、Linux 和 macOS。
 
 ### Cargo (源码编译)
 ```bash
 cargo install winload
+cargo install --list
 ```
 ### Windows (Scoop)
 ```powershell
 scoop bucket add vincentzyu https://github.com/VincentZyuApps/scoop-bucket
 scoop install winload
+# 执行二进制文件
+win-nload
+Get-Command win-nload # Powershell
+where win-nload # CMD
 ```
 
 ### Arch Linux (AUR):
 ```bash
-paru -S winload-bin
+paru -S winload-rust-bin
+which winload
 ```
 
 ### Linux (一键安装脚本)
@@ -83,6 +101,7 @@ paru -S winload-bin
 > 支持 Fedora/RHEL 及其下游 —— Rocky Linux、AlmaLinux、CentOS Stream 等 (dnf)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/install_scripts/install.sh | bash
+which winload
 ```
 > 📄 [查看安装脚本源码](https://github.com/VincentZyuApps/winload/blob/main/docs/install_scripts/install.sh)
 
@@ -95,11 +114,13 @@ curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/in
 sudo dpkg -i ./winload_*_amd64.deb
 # 或使用 apt（自动处理依赖）
 sudo apt install ./winload_*_amd64.deb
+which winload
 ```
 
 **RPM (Fedora/RHEL):**
 ```bash
 sudo dnf install ./winload-*-1.x86_64.rpm
+which winload
 ```
 
 **或者直接从 [GitHub Releases](https://github.com/VincentZyuApps/winload/releases) 下载二进制文件。**

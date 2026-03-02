@@ -44,36 +44,54 @@ Winload는 Roland Riegel의 고전적인 프로젝트인 [nload](https://github.
 - **미니멀한 UI**: `nload`의 사용성을 계승한 깔끔한 TUI(텍스트 사용자 인터페이스)를 제공합니다.
 
 ## 📥 Python 버전 설치
-> 💡 **구똄 참고사항**: PyPI 및 GitHub/Gitee 소스 코드만 Python 버전입니다.  
+> 💡 **구현 참고사항**: PyPI 및 GitHub/Gitee 소스 코드만 Python 버전입니다.  
 > Cargo만 Rust 소스 코드 로컬 빌드를 제공합니다.  
 > 모든 다른 패키지 관리자(Scoop, AUR, npm, APT, RPM) 및 GitHub Releases는 **Rust 바이너리**를 제공합니다.
 ### Python (pip)
 ```bash
 pip install winload
+# uv 사용을 권장합니다:
+# https://docs.astral.sh/uv/getting-started/installation/
+# https://gitee.com/wangnov/uv-custom/releases
+uv venv
+uv pip install winload
+uv run winload
+uv run python -c "import shutil; print(shutil.which('winload'))"
 ```
 
 ## 📥 Rust 버전 설치 (권장)
 ### npm (크로스 플래트폼)
 ```bash
 npm install -g winload-rust-bin
+npm list -g winload-rust-bin
+# Windows에서는 System32\winload.exe와의 충돌을 피하기 위해 win-nload 사용
+# Linux/macOS에서는 winload 또는 win-nload 모두 사용 가능
 # 또는 npx 를 직접 사용
 npx winload-rust-bin
 ```
+> ⚠️ 이 패키지는 향후 `@vincentzyuapps/winload`로 마이그레이션될 예정입니다. [GitHub Packages](https://github.com/features/packages) 규격에 맞추기 위함입니다.
+
 > 6가지 사전 컴파일된 바이너리 포함: x86_64 & ARM64, Windows·Linux·macOS 대응.
 
 ### Cargo (소스 코드 빌드)
 ```bash
 cargo install winload
+cargo install --list
 ```
 ### Windows (Scoop 이용)
 ```powershell
 scoop bucket add vincentzyu https://github.com/VincentZyuApps/scoop-bucket
 scoop install winload
+# 바이너리 파일 실행
+win-nload
+Get-Command win-nload # Powershell
+where win-nload # CMD
 ```
 
 ### Arch Linux (AUR):
 ```bash
-paru -S winload-bin
+paru -S winload-rust-bin
+which winload
 ```
 
 ### Linux (간편 설치 스크립트)
@@ -82,6 +100,7 @@ paru -S winload-bin
 > Fedora/RHEL 및 파생 버전(Rocky Linux, AlmaLinux, CentOS Stream 등) 지원 (dnf)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/install_scripts/install.sh | bash
+which winload
 ```
 > 📄 [설치 스크립트 소스 보기](https://github.com/VincentZyuApps/winload/blob/main/docs/install_scripts/install.sh)
 
@@ -94,11 +113,13 @@ curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/in
 sudo dpkg -i ./winload_*_amd64.deb
 # 또는 apt를 사용하여 의존성을 자동으로 해결하며 설치합니다.
 sudo apt install ./winload_*_amd64.deb
+which winload
 ```
 
 **RPM (Fedora/RHEL):**
 ```bash
 sudo dnf install ./winload-*-1.x86_64.rpm
+which winload
 ```
 
 **또는 [GitHub Releases](https://github.com/VincentZyuApps/winload/releases)에서 바이너리를 직접 다운로드할 수 있습니다.**

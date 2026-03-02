@@ -27,7 +27,7 @@
 [![APT](https://img.shields.io/badge/APT-E95420?style=for-the-badge&logo=debian&logoColor=white)](https://github.com/VincentZyuApps/winload/releases)
 [![RPM](https://img.shields.io/badge/RPM-CB1626?style=for-the-badge&logo=redhat&logoColor=white)](https://github.com/VincentZyuApps/winload/releases)
 
-> **[📖 建置文檔](.github/workflows/bulid.zh-tw.md)**
+> **[📖 建置文檔](.github/workflows/build.zh-tw.md)**
 
 ## 🚀 簡介
 Winload 是一個直觀的終端網路流量監控工具。最初為 Windows 打造，彌補 nload 在 Windows 上的空白，現已支援 Linux 和 macOS。
@@ -51,51 +51,76 @@ https://github.com/rolandriegel/nload
 ### Python (pip)
 ```bash
 pip install winload
+# 推薦使用 uv：
+# https://docs.astral.sh/uv/getting-started/installation/
+# https://gitee.com/wangnov/uv-custom/releases
+uv venv
+uv pip install winload
+uv run winload
+uv run python -c "import shutil; print(shutil.which('winload'))"
 ```
 
 ## 📥 Rust 版本安裝（推薦）
 ### npm (跨平台)
 ```bash
 npm install -g winload-rust-bin
+npm list -g winload-rust-bin
+# 在 Windows 上使用 win-nload 以避免與 System32\winload.exe 衝突
+# 在 Linux/macOS 上，winload 和 win-nload 均可使用
 # 或直接使用 npx
 npx winload-rust-bin
 ```
+> ⚠️ 此套件將在未來版本遷移至 `@vincentzyuapps/winload`，以相容 [GitHub Packages](https://github.com/features/packages) 規範。
+
 > 包含 6 個預編譯二進制文件：x86_64 & ARM64 版本，支援 Windows、Linux 和 macOS。
 
 ### Cargo (原始碼編譯)
 ```bash
 cargo install winload
+cargo install --list
 ```
 ### Windows (Scoop)
 ```powershell
 scoop bucket add vincentzyu https://github.com/VincentZyuApps/scoop-bucket
 scoop install winload
+# 執行二進位檔案
+win-nload
+Get-Command win-nload # Powershell
+where win-nload # CMD
 ```
 
 ### Arch Linux (AUR):
 ```bash
-paru -S winload-bin
+paru -S winload-rust-bin
+which winload
 ```
 
 ### Linux (一鍵安裝指令稿)
 > 支援 Debian/Ubuntu 及其衍生版 —— Linux Mint、Pop!_OS、Deepin、UnionTech OS 等 (apt)
+
 > 支援 Fedora/RHEL 及其衍生版 —— Rocky Linux、AlmaLinux、CentOS Stream 等 (dnf)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/VincentZyuApps/winload/main/docs/install_scripts/install.sh | bash
+which winload
 ```
+> 📄 [查看安裝指令稿原始碼](https://github.com/VincentZyuApps/winload/blob/main/docs/install_scripts/install.sh)
 
 <details>
 <summary>手動安裝</summary>
 
 **DEB (Debian/Ubuntu):**
 ```bash
-# 从 GitHub Releases 下載最新 .deb 包
-sudo dpkg -i winload_*_amd64.deb
+# 從 GitHub Releases 下載最新 .deb 包
+sudo dpkg -i ./winload_*_amd64.deb
+# 或使用 apt（自動處理依賴）
+sudo apt install ./winload_*_amd64.deb
+which winload
 ```
 
 **RPM (Fedora/RHEL):**
 ```bash
 sudo dnf install ./winload-*-1.x86_64.rpm
+which winload
 ```
 
 **或者直接從 [GitHub Releases](https://github.com/VincentZyuApps/winload/releases) 下載二進制文件。**
