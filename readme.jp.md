@@ -88,6 +88,11 @@ win-nload
 Get-Command win-nload # Powershell
 where win-nload # CMD
 ```
+> 💡 レガシーの Windows Console ではなく、[Windows Terminal](https://github.com/microsoft/terminal) の使用を推奨します。CJK 文字の正確なレンダリングとより良い TUI 体験が得られます。
+> ```powershell
+> scoop bucket add extras
+> scoop install windows-terminal
+> ```
 
 ### Arch Linux (AUR):
 ```bash

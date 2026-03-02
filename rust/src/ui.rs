@@ -81,9 +81,9 @@ pub fn draw(frame: &mut Frame, app: &App) {
 
 // ─── Header ────────────────────────────────────────────────
 
-/// 将文本用空格填充到指定宽度
+/// 将文本用空格填充到指定宽度（正确处理 CJK 双宽度字符）
 fn pad_to_width(text: &str, width: usize) -> String {
-    let text_len = text.chars().count();
+    let text_len = str_display_width(text);
     if text_len >= width {
         text.to_string()
     } else {

@@ -88,6 +88,11 @@ win-nload
 Get-Command win-nload # Powershell
 where win-nload # CMD
 ```
+> 💡 推荐使用 [Windows Terminal](https://github.com/microsoft/terminal) 而非旧版 Windows Console，以获得正确的中文字符渲染和更好的 TUI 体验。
+> ```powershell
+> scoop bucket add extras
+> scoop install windows-terminal
+> ```
 
 ### Arch Linux (AUR):
 ```bash
