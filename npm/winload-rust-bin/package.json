@@ -5,9 +5,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/vincent-zyu/winload"
+    "url": "https://github.com/VincentZyuApps/winload"
   },
-  "homepage": "https://github.com/VincentZyuApps/winload",
+  "homepage": "https://gitee.com/vincent-zyu/winload",
   "author": "VincentZyu <1830540513zyu@gmail.com>",
   "keywords": [
     "network",
