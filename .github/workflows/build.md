@@ -109,7 +109,8 @@ check ──→ build ──→ release ──→ publish
   │         │         │           │
   │         │         │           └─ npm: Download 6 platform binaries
   │         │         │              Publish platform packages (os/cpu scoped)
-  │         │         │              Publish main package (winload-rust-bin)
+  │         │         │              Publish main package (@vincentzyuapps/winload)
+  │         │         │              Sync to GitHub Packages (npm.pkg.github.com)
   │         │         │
   │         │         └─ Download artifacts
   │         │            Delete old release/tag
@@ -161,6 +162,7 @@ flowchart TB
         N1[Download 6 platform binaries]
         N2[Publish platform packages]
         N3[Publish main package]
+        N4[Sync to GitHub Packages]
     end
     
     C1 --> C2
@@ -173,7 +175,7 @@ flowchart TB
     R4 --> A1
     A1 --> A2 --> A3
     R4 --> N1
-    N1 --> N2 --> N3
+    N1 --> N2 --> N3 --> N4
 ```
 
 ## 🍺 Scoop Publish (Rust)
@@ -200,18 +202,23 @@ A repository secret `AUR_SSH_KEY` must be set in **Settings → Secrets → Acti
 
 ## 📦 npm Publish (Rust)
 
-The `publish` keyword also triggers publishing to npm as [`winload-rust-bin`](https://www.npmjs.com/package/winload-rust-bin):
+The `publish` keyword also triggers publishing to npm as [`@vincentzyuapps/winload`](https://www.npmjs.com/package/@vincentzyuapps/winload):
 
 1. Downloads 6 platform binaries (Win/Linux/macOS × x64/ARM64) from the latest GitHub Release
 2. Publishes 6 platform-specific packages with `os`/`cpu` fields (npm auto-selects the matching one)
-3. Publishes the main `winload-rust-bin` package with `optionalDependencies`
+3. Publishes the main `@vincentzyuapps/winload` package with `optionalDependencies`
 4. All versions (including pre-release like `0.1.6-beta.4`) are published as `latest`
+5. Syncs all packages to [GitHub Packages](https://github.com/features/packages) (`npm.pkg.github.com`)
 
 > Uses the [esbuild](https://github.com/evanw/esbuild) / [Biome](https://github.com/biomejs/biome) pattern: each platform has its own scoped package, `optionalDependencies` ensures only the matching binary is downloaded.
+
+> The old unscoped package `winload-rust-bin` has been deprecated. The scoped name `@vincentzyuapps/winload` is required for GitHub Packages compatibility.
 
 ### Prerequisite
 
 A repository secret `NPM_TOKEN` must be set in **Settings → Secrets → Actions**, containing an npm Automation token.
+
+> **Note:** GitHub Packages publishing uses `GITHUB_TOKEN` which is automatically provided by GitHub Actions — no additional secret is needed.
 
 ## 🐍 PyPI Publish (Python)
 

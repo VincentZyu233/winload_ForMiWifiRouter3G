@@ -19,7 +19,7 @@
 [![Android x64 | ARM64](https://img.shields.io/badge/Android-x64_|_ARM64-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/VincentZyuApps/winload/releases)
 
 [![PyPI](https://img.shields.io/badge/PyPI-3776AB?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/winload/)
-[![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://www.npmjs.com/package/winload-rust-bin)
+[![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://www.npmjs.com/package/@vincentzyuapps/winload)
 [![Crates.io](https://img.shields.io/badge/Crates.io-000000?style=for-the-badge&logo=rust&logoColor=white)](https://crates.io/crates/winload)
 
 [![Scoop](https://img.shields.io/badge/Scoop-7B4AE2?style=for-the-badge&logo=scoop&logoColor=white)](https://scoop.sh/#/apps?q=%22https%3A%2F%2Fgithub.com%2FVincentZyuApps%2Fscoop-bucket%22&o=false)
@@ -63,14 +63,14 @@ uv run python -c "import shutil; print(shutil.which('winload'))"
 ## 📥 Rust Edition Installation (recommended)
 ### npm (cross-platform)
 ```bash
-npm install -g winload-rust-bin
-npm list -g winload-rust-bin
+npm install -g @vincentzyuapps/winload
+npm list -g @vincentzyuapps/winload
 # on Windows, use win-nload to avoid conflict with System32\winload.exe
 # on Linux/macOS, both winload and win-nload work
 # or use npx directly
-npx winload-rust-bin
+npx @vincentzyuapps/winload
 ```
-> ⚠️ This package will be migrated to `@vincentzyuapps/winload` in a future version for [GitHub Packages](https://github.com/features/packages) compatibility.
+> ⚠️ The old package `winload-rust-bin` has been deprecated. Please use `@vincentzyuapps/winload` instead. The scoped package name is required for [GitHub Packages](https://github.com/features/packages) compatibility.
 
 > Includes 6 precompiled binaries for x86_64 & ARM64 across Windows, Linux, and macOS.
 

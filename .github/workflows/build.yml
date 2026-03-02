@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   # ── 判断是否需要构建 / 发布 ──────────────────────────────
@@ -659,11 +660,12 @@ jobs:
 
           echo "✅ winload-rust-bin updated!"
 
-  # ── 发布到 npm（winload-rust-bin: 预编译二进制）────────────
+  # ── 发布到 npm（@vincentzyuapps/winload: 预编译二进制）────────────
   # 原理同 esbuild / @biomejs/biome / turbo:
   #   1. 为每个平台发布一个只含二进制的包 (os/cpu 字段让 npm 自动筛选)
-  #   2. 主包 winload-rust-bin 通过 optionalDependencies 引用它们
+  #   2. 主包 @vincentzyuapps/winload 通过 optionalDependencies 引用它们
   #   3. 用户 npm install 时只下载匹配当前平台的那一个
+  #   4. 同时发布到 GitHub Packages (npm.pkg.github.com)
   publish-npm:
     name: Publish to npm
     needs: [check, release]
@@ -711,12 +713,12 @@ jobs:
 
           # 平台定义: npm包名|os|cpu|源文件|二进制名
           PLATFORMS=(
-            "winload-rust-bin-win32-x64|win32|x64|artifacts/winload-windows-x86_64.exe|winload.exe"
-            "winload-rust-bin-win32-arm64|win32|arm64|artifacts/winload-windows-aarch64.exe|winload.exe"
-            "winload-rust-bin-linux-x64|linux|x64|artifacts/winload-linux-x86_64|winload"
-            "winload-rust-bin-linux-arm64|linux|arm64|artifacts/winload-linux-aarch64|winload"
-            "winload-rust-bin-darwin-x64|darwin|x64|artifacts/winload-macos-x86_64|winload"
-            "winload-rust-bin-darwin-arm64|darwin|arm64|artifacts/winload-macos-aarch64|winload"
+            "@vincentzyuapps/winload-win32-x64|win32|x64|artifacts/winload-windows-x86_64.exe|winload.exe"
+            "@vincentzyuapps/winload-win32-arm64|win32|arm64|artifacts/winload-windows-aarch64.exe|winload.exe"
+            "@vincentzyuapps/winload-linux-x64|linux|x64|artifacts/winload-linux-x86_64|winload"
+            "@vincentzyuapps/winload-linux-arm64|linux|arm64|artifacts/winload-linux-aarch64|winload"
+            "@vincentzyuapps/winload-darwin-x64|darwin|x64|artifacts/winload-macos-x86_64|winload"
+            "@vincentzyuapps/winload-darwin-arm64|darwin|arm64|artifacts/winload-macos-aarch64|winload"
           )
 
           for entry in "${PLATFORMS[@]}"; do
@@ -775,11 +777,44 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
-          echo "📦 Publishing winload-rust-bin@${NPM_VERSION} (tag: ${NPM_TAG})..."
+          echo "📦 Publishing @vincentzyuapps/winload@${NPM_VERSION} (tag: ${NPM_TAG})..."
           cat package.json
           npm publish --access public --tag "${NPM_TAG}"
 
           echo "✅ npm packages published!"
+
+      # ── 同步发布到 GitHub Packages ──
+      - name: Publish platform packages to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check.outputs.version }}"
+          NPM_VERSION="${VERSION#v}"
+          NPM_TAG="latest"
+
+          npm config set @vincentzyuapps:registry https://npm.pkg.github.com
+
+          for dir in npm-platforms/@vincentzyuapps/*/; do
+            [ -d "$dir" ] || continue
+            cd "$dir"
+            npm publish --tag "${NPM_TAG}" 2>&1 || echo "⚠️ Failed to publish $(basename $dir) to GitHub Packages (may already exist)"
+            cd "$GITHUB_WORKSPACE"
+          done
+
+      - name: Publish main package to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check.outputs.version }}"
+          NPM_VERSION="${VERSION#v}"
+          NPM_TAG="latest"
+
+          npm config set @vincentzyuapps:registry https://npm.pkg.github.com
+
+          cd npm/winload-rust-bin
+          npm publish --tag "${NPM_TAG}"
+
+          echo "✅ GitHub Packages published!"
 
   # ── 发布到 PyPI (Python 包) ───────────────────────────────
   publish-pypi:

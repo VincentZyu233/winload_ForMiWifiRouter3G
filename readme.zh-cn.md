@@ -19,7 +19,7 @@
 [![Android x64 | ARM64](https://img.shields.io/badge/Android-x64_|_ARM64-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/VincentZyuApps/winload/releases)
 
 [![PyPI](https://img.shields.io/badge/PyPI-3776AB?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/winload/)
-[![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://www.npmjs.com/package/winload-rust-bin)
+[![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://www.npmjs.com/package/@vincentzyuapps/winload)
 [![Crates.io](https://img.shields.io/badge/Crates.io-000000?style=for-the-badge&logo=rust&logoColor=white)](https://crates.io/crates/winload)
 
 [![Scoop](https://img.shields.io/badge/Scoop-7B4AE2?style=for-the-badge&logo=scoop&logoColor=white)](https://scoop.sh/#/apps?q=%22https%3A%2F%2Fgithub.com%2FVincentZyuApps%2Fscoop-bucket%22&o=false)
@@ -63,14 +63,14 @@ uv run python -c "import shutil; print(shutil.which('winload'))"
 ## 📥 Rust 版本安装（推荐）
 ### npm (跨平台)
 ```bash
-npm install -g winload-rust-bin
-npm list -g winload-rust-bin
+npm install -g @vincentzyuapps/winload
+npm list -g @vincentzyuapps/winload
 # 在 Windows 上使用 win-nload 以避免与 System32\winload.exe 冲突
 # 在 Linux/macOS 上，winload 和 win-nload 均可使用
 # 或直接使用 npx
-npx winload-rust-bin
+npx @vincentzyuapps/winload
 ```
-> ⚠️ 此包将在未来版本迁移至 `@vincentzyuapps/winload`，以兼容 [GitHub Packages](https://github.com/features/packages) 规范。
+> ⚠️ 旧包名 `winload-rust-bin` 已弃用，请使用 `@vincentzyuapps/winload`。改用 scoped 包名是为了兼容 [GitHub Packages](https://github.com/features/packages) 规范。
 
 > 包含 6 个预编译二进制文件：x86_64 & ARM64 版本，支持 Windows、Linux 和 macOS。
 

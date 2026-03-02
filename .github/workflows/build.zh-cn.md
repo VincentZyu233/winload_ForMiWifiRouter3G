@@ -109,7 +109,8 @@ check ──→ build ──→ release ──→ publish
   │         │         │           │
   │         │         │           └─ npm: 从 Release 下载 6 个平台二进制
   │         │         │              发布平台包 (os/cpu 限定)
-  │         │         │              发布主包 (winload-rust-bin)
+  │         │         │              发布主包 (@vincentzyuapps/winload)
+  │         │         │              同步到 GitHub Packages (npm.pkg.github.com)
   │         │         │
   │         │         └─ 下载构建产物
   │         │            删除旧的 release/tag
@@ -161,6 +162,7 @@ flowchart TB
         N1[下载 6 个平台二进制]
         N2[发布平台包]
         N3[发布主包]
+        N4[同步到 GitHub Packages]
     end
     
     C1 --> C2
@@ -173,7 +175,7 @@ flowchart TB
     R4 --> A1
     A1 --> A2 --> A3
     R4 --> N1
-    N1 --> N2 --> N3
+    N1 --> N2 --> N3 --> N4
 ```
 
 ## 🍺 Scoop 发布 (Rust)
@@ -200,18 +202,23 @@ flowchart TB
 
 ## 📦 npm 发布 (Rust)
 
-`publish` 关键词也会触发将 Rust 预编译二进制发布到 npm，包名为 [`winload-rust-bin`](https://www.npmjs.com/package/winload-rust-bin)：
+`publish` 关键词也会触发将 Rust 预编译二进制发布到 npm，包名为 [`@vincentzyuapps/winload`](https://www.npmjs.com/package/@vincentzyuapps/winload)：
 
 1. 从最新的 GitHub Release 下载 6 个平台的二进制文件（Win/Linux/macOS × x64/ARM64）
 2. 发布 6 个平台专属包，每个包带有 `os`/`cpu` 字段（npm 自动选择匹配的包）
-3. 发布主包 `winload-rust-bin`，通过 `optionalDependencies` 引用各平台包
+3. 发布主包 `@vincentzyuapps/winload`，通过 `optionalDependencies` 引用各平台包
 4. 所有版本（包括预发布如 `0.1.6-beta.4`）均以 `latest` 标签发布
+5. 同步发布到 [GitHub Packages](https://github.com/features/packages)（`npm.pkg.github.com`）
 
 > 采用 [esbuild](https://github.com/evanw/esbuild) / [Biome](https://github.com/biomejs/biome) 模式：每个平台一个独立包，`optionalDependencies` 确保只下载匹配当前平台的二进制。
+
+> 旧的非 scoped 包名 `winload-rust-bin` 已弃用。改用 `@vincentzyuapps/winload` 是为了兼容 GitHub Packages 规范。
 
 ### 前置条件
 
 需要在仓库的 **Settings → Secrets → Actions** 中设置 `NPM_TOKEN` 密钥，值为 npm Automation Token。
+
+> **注意：** GitHub Packages 发布使用 `GITHUB_TOKEN`，由 GitHub Actions 自动提供，无需额外设置密钥。
 
 ## 🐍 PyPI 发布 (Python)
 

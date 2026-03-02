@@ -19,7 +19,7 @@
 [![Android x64 | ARM64](https://img.shields.io/badge/Android-x64_|_ARM64-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/VincentZyuApps/winload/releases)
 
 [![PyPI](https://img.shields.io/badge/PyPI-3776AB?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/winload/)
-[![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://www.npmjs.com/package/winload-rust-bin)
+[![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://www.npmjs.com/package/@vincentzyuapps/winload)
 [![Crates.io](https://img.shields.io/badge/Crates.io-000000?style=for-the-badge&logo=rust&logoColor=white)](https://crates.io/crates/winload)
 
 [![Scoop](https://img.shields.io/badge/Scoop-7B4AE2?style=for-the-badge&logo=scoop&logoColor=white)](https://scoop.sh/#/apps?q=%22https%3A%2F%2Fgithub.com%2FVincentZyuApps%2Fscoop-bucket%22&o=false)
@@ -63,14 +63,14 @@ uv run python -c "import shutil; print(shutil.which('winload'))"
 ## 📥 Rust 版 インストール（推奨）
 ### npm (クロスプラットフォーム)
 ```bash
-npm install -g winload-rust-bin
-npm list -g winload-rust-bin
+npm install -g @vincentzyuapps/winload
+npm list -g @vincentzyuapps/winload
 # Windows では System32\winload.exe との競合を避けるため win-nload を使用
 # Linux/macOS では winload と win-nload のどちらも使用可能
 # または npx を直接使用
-npx winload-rust-bin
+npx @vincentzyuapps/winload
 ```
-> ⚠️ 本パッケージは今後 `@vincentzyuapps/winload` へ移行予定です。[GitHub Packages](https://github.com/features/packages) の仕様に対応するためです。
+> ⚠️ 旧パッケージ名 `winload-rust-bin` は非推奨となりました。`@vincentzyuapps/winload` をご利用ください。scoped パッケージ名への変更は [GitHub Packages](https://github.com/features/packages) の仕様に対応するためです。
 
 > 6つのプリコンパイル済みバイナリを含む：x86_64 & ARM64 対応、Windows・Linux・macOS に対応。
 

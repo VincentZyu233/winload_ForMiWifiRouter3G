@@ -1,5 +1,5 @@
 {
-  "name": "winload-rust-bin",
+  "name": "@vincentzyuapps/winload",
   "version": "0.0.0",
   "description": "Network Load Monitor — nload-like TUI tool for Windows/Linux/macOS (prebuilt Rust binary)",
   "license": "MIT",
@@ -29,12 +29,15 @@
     "index.js",
     "readme.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "optionalDependencies": {
-    "winload-rust-bin-win32-x64": "0.0.0",
-    "winload-rust-bin-win32-arm64": "0.0.0",
-    "winload-rust-bin-linux-x64": "0.0.0",
-    "winload-rust-bin-linux-arm64": "0.0.0",
-    "winload-rust-bin-darwin-x64": "0.0.0",
-    "winload-rust-bin-darwin-arm64": "0.0.0"
+    "@vincentzyuapps/winload-win32-x64": "0.0.0",
+    "@vincentzyuapps/winload-win32-arm64": "0.0.0",
+    "@vincentzyuapps/winload-linux-x64": "0.0.0",
+    "@vincentzyuapps/winload-linux-arm64": "0.0.0",
+    "@vincentzyuapps/winload-darwin-x64": "0.0.0",
+    "@vincentzyuapps/winload-darwin-arm64": "0.0.0"
   }
 }
