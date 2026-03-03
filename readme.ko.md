@@ -43,7 +43,12 @@ Winload는 Roland Riegel의 고전적인 프로젝트인 [nload](https://github.
 - **실시간 시각화**: 실시간으로 유입(Incoming) 및 유출(Outgoing) 트래픽 그래프와 처리량 통계를 보여줍니다.
 - **미니멀한 UI**: `nload`의 사용성을 계승한 깔끔한 TUI(텍스트 사용자 인터페이스)를 제공합니다.
 
-## 📥 Python 버전 설치
+## 📊 성능 벤치마크
+> ⚡ Winload (Rust)는 **~10ms의 시작 시간**과 **5MB 미만의 바이너리 크기**를 달성하여, Python 버전을 크게 능가하며 C++ nload와 대등한 효율성을 보여줍니다.
+
+![Winload Benchmark](docs/benchmark/benchmark.svg)
+
+## 🐍 Python 버전 설치
 > 💡 **구현 참고사항**: PyPI 및 GitHub/Gitee 소스 코드만 Python 버전입니다.  
 > Cargo만 Rust 소스 코드 로컬 빌드를 제공합니다.  
 > 모든 다른 패키지 관리자(Scoop, AUR, npm, APT, RPM) 및 GitHub Releases는 **Rust 바이너리**를 제공합니다.

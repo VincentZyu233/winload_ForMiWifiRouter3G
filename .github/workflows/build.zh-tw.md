@@ -10,14 +10,15 @@ CI/CD 流程完全由 **commit 資訊中的關鍵字** 驅動。推送至 `main`
 
 ## 🔑 關鍵字
 
-| Commit 資訊中的關鍵字 | 建置（8 平台） | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
-|----------------------|:---:|:---:|:---:|:---:|:---:|
-| `build action` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `build release` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `build publish` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| `publish from release` | ❌ | ❌ | ✅ | ❌ | ❌ |
-| `pypi publish` | ❌ | ❌ | ❌ | ✅ | ❌ |
-| `crates publish` | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Commit 資訊中的關鍵字 | 建置（8 平台） | 基準測試 (Benchmark) | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
+|----------------------|:---:|:---:|:---:|:---:|:---:|:---:|
+| `build action` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `build release` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `build publish` | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| `publish from release` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `pypi publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `crates publish` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `run benchmark` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 
 > **說明:** `publish from release` 從現有的 Release 抓取二進位檔發布，不會重新建置。`build publish` 則是完整的流程。
@@ -33,6 +34,9 @@ CI/CD 流程完全由 **commit 資訊中的關鍵字** 驅動。推送至 `main`
 
 # 僅建置，驗證所有平台的編譯
 git commit --allow-empty -m "ci: test cross-compile (build action)"
+
+# 僅運行基準測試
+git commit --allow-empty -m "test: verify performance (run benchmark)"
 
 # 建置 + 建立 GitHub Release（不發佈至套件管理工具）
 git commit -m "release: v0.2.0 (build release)"
@@ -120,6 +124,10 @@ check ──→ build ──→ release ──→ publish
   │         └─ 編譯 8 個平台目標
   │            上傳建置產物
   │
+  ├─→ benchmark (獨立運行)
+  │    運行 benchmark_go/benchmark.sh
+  │    提交並推送 docs/benchmark/benchmark.svg
+  │
   ├─→ publish-crates-io（建置成功後並行，與 Scoop/AUR/npm 同時）
   │    cargo publish --allow-dirty
   │
@@ -161,8 +169,15 @@ flowchart TB
     subgraph npm["publish-npm"]
         N1[下載 6 個平台二進位檔]
         N2[發佈平台套件]
-        N3[發佈主套件]
-        N4[同步至 GitHub Packages]
+    subgraph benchmark["benchmark"]
+        BM1[運行 benchmark.sh]
+        BM2[提交並推送 SVG]
+    end
+
+    C1 --> C2
+    C2 --> B1
+    C1 --> BM1
+    BM1 --> BM2至 GitHub Packages]
     end
     
     C1 --> C2

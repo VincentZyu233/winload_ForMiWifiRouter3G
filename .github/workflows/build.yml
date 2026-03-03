@@ -21,6 +21,7 @@ jobs:
       should_publish: ${{ steps.flags.outputs.should_publish }}
       should_publish_pypi: ${{ steps.flags.outputs.should_publish_pypi }}
       should_publish_crates: ${{ steps.flags.outputs.should_publish_crates }}
+      should_benchmark: ${{ steps.flags.outputs.should_benchmark }}
       version: ${{ steps.flags.outputs.version }}
     steps:
       - name: Checkout
@@ -41,6 +42,7 @@ jobs:
             echo "should_build=true"    >> "$GITHUB_OUTPUT"
             echo "should_release=false" >> "$GITHUB_OUTPUT"
             echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "should_benchmark=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           
@@ -50,6 +52,7 @@ jobs:
           PUBLISH=false
           PUBLISH_PYPI=false
           PUBLISH_CRATES=false
+          BENCHMARK=false
           
           # "build publish" = 构建 + Release + 发布到包管理器 (全套)
           if echo "$MSG" | grep -qi "build publish"; then
@@ -79,14 +82,49 @@ jobs:
           if echo "$MSG" | grep -qiE "crates publish|publish crates"; then
             PUBLISH_CRATES=true
           fi
+
+          # "run benchmark" = 运行基准测试
+          if echo "$MSG" | grep -qi "run benchmark"; then
+            BENCHMARK=true
+          fi
           
           echo "should_build=$BUILD"     >> "$GITHUB_OUTPUT"
           echo "should_release=$RELEASE" >> "$GITHUB_OUTPUT"
           echo "should_publish=$PUBLISH" >> "$GITHUB_OUTPUT"
           echo "should_publish_pypi=$PUBLISH_PYPI" >> "$GITHUB_OUTPUT"
           echo "should_publish_crates=$PUBLISH_CRATES" >> "$GITHUB_OUTPUT"
+          echo "should_benchmark=$BENCHMARK" >> "$GITHUB_OUTPUT"
           
-          echo "📋 Flags: build=$BUILD release=$RELEASE publish=$PUBLISH publish_pypi=$PUBLISH_PYPI publish_crates=$PUBLISH_CRATES"
+          echo "📋 Flags: build=$BUILD release=$RELEASE publish=$PUBLISH publish_pypi=$PUBLISH_PYPI publish_crates=$PUBLISH_CRATES benchmark=$BENCHMARK"
+
+  # ── Benchmark ───────────────────────────────────────────
+  benchmark:
+    name: Run Benchmark
+    needs: check
+    if: needs.check.outputs.should_benchmark == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y time
+
+      - name: Run benchmark
+        run: |
+          chmod +x benchmark_go/benchmark.sh
+          cd benchmark_go
+          ./benchmark.sh
+
+      - name: Commit and push benchmark results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/benchmark/benchmark.svg
+          git commit -m "docs: update benchmark results [skip ci]" || echo "No changes to commit"
+          git push origin main
 
   # ── 多平台构建 ───────────────────────────────────────────
   build:

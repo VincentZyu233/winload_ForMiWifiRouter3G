@@ -92,6 +92,10 @@ py/cython_debug/
 py/.uv/
 py/uv.lock
 
+# Generic Python environment & cache ignore (Any folder)
+*venv*/
+*env*/
+*__pycache__*
 
 # ============================================================
 # Rust (rust/ 目录)

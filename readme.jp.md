@@ -44,7 +44,12 @@ https://github.com/rolandriegel/nload
 - **リアルタイムの可視化**: 送受信トラフィックのライブグラフとスループット統計を表示。
 - **ミニマルなUI**: nloadの使い勝手を踏襲したクリーンなTUI（テキストユーザインターフェース）。
 
-## 📥 Python 版 インストール
+## 📊 パフォーマンスベンチマーク
+> ⚡ Winload (Rust) は **~10ms の起動時間** と **5MB未満のバイナリサイズ** を達成し、Python版を大幅に上回り、C++製 nload と同等の効率を実現しています。
+
+![Winload Benchmark](docs/benchmark/benchmark.svg)
+
+## 🐍 Python 版 インストール
 > 💡 **実装に関する注記**: PyPI および GitHub/Gitee のソースコードのみが Python 版です。  
 > Cargo のみが Rust ソースコードのローカルビルドを提供します。  
 > すべて他方のパッケージマネージャー（Scoop、AUR、npm、APT、RPM）および GitHub Releases は **Rust バイナリ** を提供しています。

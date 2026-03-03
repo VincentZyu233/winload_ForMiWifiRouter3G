@@ -44,7 +44,12 @@ https://github.com/rolandriegel/nload
 - **Real-time visualization**: live incoming/outgoing graphs and throughput stats.
 - **Minimal UI**: clean TUI that mirrors nload's ergonomics.
 
-## 📥 Python Edition Installation
+## 📊 Performance Benchmarks
+> ⚡ Winload (Rust) achieves **~10ms startup** and **<5MB binary size**, significantly outperforming Python and matching C++ nload in efficiency.
+
+![Winload Benchmark](docs/benchmark/benchmark.svg)
+
+## 🐍 Python Edition Installation
 > 💡 **Implementation Note**: Only PyPI and GitHub/Gitee provide Python edition.  
 > Only Cargo provides Rust source code for local compilation.  
 > All other package managers (Scoop, AUR, npm, APT, RPM) and GitHub Releases distribute **Rust binaries only**.

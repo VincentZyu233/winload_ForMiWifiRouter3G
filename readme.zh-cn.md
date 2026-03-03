@@ -44,7 +44,12 @@ https://github.com/rolandriegel/nload
 - **实时可视化**: 实时上行/下行流量图和吞吐量统计。
 - **简洁界面**: 干净的 TUI，沿袭 nload 的人体工程学设计。
 
-## 📥 Python 版本安装
+## 📊 性能基准测试
+> ⚡ Winload (Rust) 实现 **~10ms 启动速度** 和 **<5MB 二进制体积**，在效率上显著优于 Python 并与 C++ nload 相当。
+
+![Winload Benchmark](docs/benchmark/benchmark.svg)
+
+## 🐍 Python 版本安装
 > 💡 **实现说明**：仅 PyPI 和 GitHub/Gitee 源代码是 Python 版本。  
 > 仅 Cargo 提供 Rust 源码供本地编译。  
 > 所有其他包管理器（Scoop、AUR、npm、APT、RPM）及 GitHub Releases 均提供 **Rust 二进制文件**。

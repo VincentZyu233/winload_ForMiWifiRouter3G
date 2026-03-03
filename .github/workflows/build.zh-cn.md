@@ -10,14 +10,15 @@ CI/CD 流水线完全由 **commit 信息中的关键词** 驱动。推送到 `ma
 
 ## 🔑 关键词
 
-| Commit 信息中的关键词 | 构建（8 平台） | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
-|----------------------|:---:|:---:|:---:|:---:|:---:|
-| `build action` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `build release` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `build publish` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| `publish from release` | ❌ | ❌ | ✅ | ❌ | ❌ |
-| `pypi publish` | ❌ | ❌ | ❌ | ✅ | ❌ |
-| `crates publish` | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Commit 信息中的关键词 | 构建（8 平台） | 基准测试 (Benchmark) | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
+|----------------------|:---:|:---:|:---:|:---:|:---:|:---:|
+| `build action` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `build release` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `build publish` | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| `publish from release` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `pypi publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `crates publish` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `run benchmark` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 
 > **说明:** `publish from release` 从已有的 Release 拉取二进制发布，不会重新构建。`build publish` 则是完整流水线。
@@ -33,6 +34,9 @@ CI/CD 流水线完全由 **commit 信息中的关键词** 驱动。推送到 `ma
 
 # 仅构建，验证所有平台的编译
 git commit --allow-empty -m "ci: test cross-compile (build action)"
+
+# 仅运行基准测试
+git commit --allow-empty -m "test: verify performance (run benchmark)"
 
 # 构建 + 创建 GitHub Release（不发布到包管理器）
 git commit -m "release: v0.2.0 (build release)"
@@ -117,7 +121,11 @@ check ──→ build ──→ release ──→ publish
   │         │            生成 release notes
   │         │            创建 GitHub Release
   │         │
-  │         └─ 编译 8 个平台目标
+  │   benchmark (独立运行)
+  │    运行 benchmark_go/benchmark.sh
+  │    提交并推送 docs/benchmark/benchmark.svg
+  │
+  ├─→       └─ 编译 8 个平台目标
   │            上传构建产物
   │
   ├─→ publish-crates-io（构建成功后并行，与 Scoop/AUR/npm 同时）
@@ -161,8 +169,15 @@ flowchart TB
     subgraph npm["publish-npm"]
         N1[下载 6 个平台二进制]
         N2[发布平台包]
-        N3[发布主包]
-        N4[同步到 GitHub Packages]
+    subgraph benchmark["benchmark"]
+        BM1[运行 benchmark.sh]
+        BM2[提交并推送 SVG]
+    end
+
+    C1 --> C2
+    C2 --> B1
+    C1 --> BM1
+    BM1 --> BM2到 GitHub Packages]
     end
     
     C1 --> C2

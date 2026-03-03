@@ -10,14 +10,15 @@ The CI/CD pipeline is driven entirely by **commit message keywords**. Push to `m
 
 ## 🔑 Keywords
 
-| Keyword in commit message | Build (8 platforms) | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
-|---------------------------|:---:|:---:|:---:|:---:|:---:|
-| `build action` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `build release` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `build publish` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| `publish from release` | ❌ | ❌ | ✅ | ❌ | ❌ |
-| `pypi publish` | ❌ | ❌ | ❌ | ✅ | ❌ |
-| `crates publish` | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Keyword in commit message | Build (8 platforms) | Benchmark | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
+|---------------------------|:---:|:---:|:---:|:---:|:---:|:---:|
+| `build action` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `build release` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `build publish` | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| `publish from release` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `pypi publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `crates publish` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `run benchmark` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 
 > **Note:** `publish from release` fetches binaries from an existing Release without rebuilding. `build publish` does the full pipeline.
@@ -33,6 +34,9 @@ The CI/CD pipeline is driven entirely by **commit message keywords**. Push to `m
 
 # Just build, verify compilation across all platforms
 git commit --allow-empty -m "ci: test cross-compile (build action)"
+
+# Run benchmark only
+git commit --allow-empty -m "test: verify performance (run benchmark)"
 
 # Build + create GitHub Release (no package manager publish)
 git commit -m "release: v0.2.0 (build release)"
@@ -120,6 +124,10 @@ check ──→ build ──→ release ──→ publish
   │         └─ Compile for 8 platform targets
   │            Upload build artifacts
   │
+  ├─→ benchmark (independent)
+  │    Run benchmark_go/benchmark.sh
+  │    Commit & Push docs/benchmark/benchmark.svg
+  │
   ├─→ publish-crates-io (after build success, parallel with Scoop/AUR/npm)
   │    cargo publish --allow-dirty
   │
@@ -165,8 +173,15 @@ flowchart TB
         N4[Sync to GitHub Packages]
     end
     
+    subgraph benchmark["benchmark"]
+        BM1[Run benchmark.sh]
+        BM2[Commit & Push SVG]
+    end
+
     C1 --> C2
     C2 --> B1
+    C1 --> BM1
+    BM1 --> BM2
     B1 --> B2
     B2 --> R1
     R1 --> R2 --> R3 --> R4
