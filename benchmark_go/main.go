@@ -291,11 +291,21 @@ func parseCommandName(cmd string) string {
 	if strings.Contains(cmd, "nload") && !strings.Contains(cmd, "winload") {
 		return "nload (C++)"
 	}
-	// Check strict python markers first
-	if strings.Contains(cmd, ".py") || strings.Contains(cmd, "python") || strings.Contains(cmd, "pip") || strings.Contains(cmd, "import") {
-		return "winload (Py)"
-	}
+	// Rust binary is invoked via explicit path: ./rust/.../winload
+	// Python binary is a bare "winload" installed into venv PATH
 	if strings.Contains(cmd, "winload") {
+		if strings.Contains(cmd, "rust/") || strings.Contains(cmd, "target/release") {
+			return "winload (Rust)"
+		}
+		// Explicit python markers
+		if strings.Contains(cmd, ".py") || strings.Contains(cmd, "python") || strings.Contains(cmd, "pip") || strings.Contains(cmd, "import") {
+			return "winload (Py)"
+		}
+		// Bare "winload" without path = Python (installed via uv pip)
+		if !strings.Contains(cmd, "/") && !strings.Contains(cmd, "\\") {
+			return "winload (Py)"
+		}
+		// Fallback: unknown winload variant
 		return "winload (Rust)"
 	}
 	return cmd

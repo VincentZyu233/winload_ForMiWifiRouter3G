@@ -25,7 +25,7 @@
 <rect x="140" y="196" width="2" height="20" rx="3" fill="#ffd43b">
   <animate attributeName="width" from="0" to="2" dur="0.8s" begin="0.0s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="210">2.7 ms</text>
+<text class="value" x="450" y="210">2.5 ms</text>
 </g>
 <g class="row" style="animation-delay: 0.1s">
 <text class="label" x="30" y="246">winload (Rust)</text>
@@ -33,15 +33,15 @@
 <rect x="140" y="232" width="8" height="20" rx="3" fill="#dea584">
   <animate attributeName="width" from="0" to="8" dur="0.8s" begin="0.1s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="246">9.2 ms</text>
+<text class="value" x="450" y="246">8.7 ms</text>
 </g>
 <g class="row" style="animation-delay: 0.2s">
-<text class="label" x="30" y="282">winload (Rust)</text>
+<text class="label" x="30" y="282">winload (Py)</text>
 <rect class="bar-bg" x="140" y="268" width="300" height="20"/>
-<rect x="140" y="268" width="300" height="20" rx="3" fill="#dea584">
+<rect x="140" y="268" width="300" height="20" rx="3" fill="#3572A5">
   <animate attributeName="width" from="0" to="300" dur="0.8s" begin="0.2s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="282">359.8 ms</text>
+<text class="value" x="450" y="282">325.4 ms</text>
 </g>
 <text class="group-title" x="30" y="333">Binary Size (lower is better)</text>
 <g class="row" style="animation-delay: 0.2s">
@@ -91,16 +91,16 @@
 <rect x="140" y="584" width="300" height="20" rx="3" fill="#3572A5">
   <animate attributeName="width" from="0" to="300" dur="0.8s" begin="0.6s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="598">19.1 MB</text>
+<text class="value" x="450" y="598">19.2 MB</text>
 </g>
 <text class="group-title" x="30" y="649">CPU Usage (20s @ 50ms) (lower is better)</text>
 <g class="row" style="animation-delay: 0.6s">
 <text class="label" x="30" y="684">nload (C++)</text>
 <rect class="bar-bg" x="140" y="670" width="300" height="20"/>
-<rect x="140" y="670" width="7" height="20" rx="3" fill="#ffd43b">
-  <animate attributeName="width" from="0" to="7" dur="0.8s" begin="0.6s" fill="freeze"/>
+<rect x="140" y="670" width="6" height="20" rx="3" fill="#ffd43b">
+  <animate attributeName="width" from="0" to="6" dur="0.8s" begin="0.6s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="684">0.70%</text>
+<text class="value" x="450" y="684">0.65%</text>
 </g>
 <g class="row" style="animation-delay: 0.7s">
 <text class="label" x="30" y="720">winload (Rust)</text>
@@ -108,7 +108,7 @@
 <rect x="140" y="706" width="2" height="20" rx="3" fill="#dea584">
   <animate attributeName="width" from="0" to="2" dur="0.8s" begin="0.7s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="720">0.00%</text>
+<text class="value" x="450" y="720">0.05%</text>
 </g>
 <g class="row" style="animation-delay: 0.8s">
 <text class="label" x="30" y="756">winload (Py)</text>
@@ -116,7 +116,7 @@
 <rect x="140" y="742" width="300" height="20" rx="3" fill="#3572A5">
   <animate attributeName="width" from="0" to="300" dur="0.8s" begin="0.8s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="756">29.03%</text>
+<text class="value" x="450" y="756">33.33%</text>
 </g>
-<text class="subtitle" x="30" y="807">📅 Updated: 2026-03-04 00:28:15</text>
+<text class="subtitle" x="30" y="807">📅 Updated: 2026-03-04 00:53:20</text>
 </svg>
