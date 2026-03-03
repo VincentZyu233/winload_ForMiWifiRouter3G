@@ -2,7 +2,7 @@
 
 > **[📖 English](build.md)**
 > **[📖 简体中文(大陆)](build.zh-cn.md)**
-> **[📖 繁體中文(台灣)](bulid.zh-tw.md)**
+> **[📖 繁體中文(台灣)](build.zh-tw.md)**
 
 ## 📋 概述
 
@@ -169,21 +169,33 @@ flowchart TB
     subgraph npm["publish-npm"]
         N1[下載 6 個平台二進位檔]
         N2[發佈平台套件]
+        N3[發佈主套件]
+        N4[同步至 GitHub Packages]
+    end
+    
     subgraph benchmark["benchmark"]
         BM1[運行 benchmark.sh]
         BM2[提交並推送 SVG]
     end
+    
+    subgraph crates["publish-crates-io"]
+        CR1[cargo publish]
+    end
+    
+    subgraph pypi["publish-pypi"]
+        PY1[uv build]
+        PY2[uv publish]
+    end
 
     C1 --> C2
     C2 --> B1
-    C1 --> BM1
-    BM1 --> BM2至 GitHub Packages]
-    end
-    
-    C1 --> C2
-    C2 --> B1
+    C2 --"run benchmark"--> BM1
+    C2 --> PY1
+    BM1 --> BM2
+    PY1 --> PY2
     B1 --> B2
     B2 --> R1
+    B2 --> CR1
     R1 --> R2 --> R3 --> R4
     R4 --> S1
     S1 --> S2 --> S3

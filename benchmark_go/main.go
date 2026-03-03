@@ -86,7 +86,7 @@ func generateSVG(data BenchmarkData) string {
 			Items: []Item{},
 		},
 		{
-			Title: "CPU Usage (10s Idle) (lower is better)",
+			Title: "CPU Usage (20s @ 50ms) (lower is better)",
 			Items: []Item{},
 		},
 	}
@@ -178,7 +178,7 @@ func generateSVG(data BenchmarkData) string {
 	// Lines start y=70, step 20
 	headerLineHeight := 20.0
 	headerLinesStartY := 70.0
-	
+
 	// Separator is below last line
 	separatorY := headerLinesStartY + float64(len(sysInfoLines))*headerLineHeight - 10.0
 	contentStartY := separatorY + 20.0

@@ -7,11 +7,11 @@
   "memory_rss": {
     "nload (C++)": 3968,
     "winload (Rust)": 3328,
-    "winload (Py)": 19804
+    "winload (Py)": 19536
   },
   "cpu_usage": {
-    "nload (C++)": 0.80,
+    "nload (C++)": 0.70,
     "winload (Rust)": 0.00,
-    "winload (Py)": 25.49
+    "winload (Py)": 29.03
   }
 }

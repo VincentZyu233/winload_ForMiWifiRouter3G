@@ -132,14 +132,15 @@ echo -e "${YELLOW}⏱️  Running startup time benchmarks with Hyperfine...${NC}
 # Ensure output directory exists (relative to PROJECT_ROOT)
 mkdir -p benchmark_go
 
-# We use 'nload --help' because nload is interactive.
-# Winload (Rust) '--version' is fast.
-# Winload (Python) '--version' is fast.
+# All three use --help consistently for fair startup time comparison.
+# --help measures: binary load → runtime init → arg parse → print → exit.
+# This captures the real runtime overhead (e.g. Python module imports vs native code).
+# -N (--shell=none) skips shell startup for more accurate sub-10ms measurements.
 
-hyperfine --warmup 3 --min-runs 10 --export-json benchmark_go/startup_time.json \
+hyperfine --warmup 3 --min-runs 10 -N --export-json benchmark_go/startup_time.json \
     "nload --help" \
-    "./rust/$RUST_BIN --version" \
-    "python3 -c 'import shutil; print(\"import_check\")' && $PY_CMD --version"
+    "./rust/$RUST_BIN --help" \
+    "$PY_CMD --help"
 
 # 5. Collect Metrics
 echo -e "${YELLOW}📊 Collecting binary size and memory metrics...${NC}"
@@ -194,7 +195,7 @@ if [ -z "$RUST_MEM" ]; then RUST_MEM=0; fi
 PY_MEM=$(get_mem_rss "$PY_CMD --version")
 if [ -z "$PY_MEM" ]; then PY_MEM=0; fi
 
-echo -e "${YELLOW}📊 Collecting CPU usage (running 20s each with 50ms interval)...${NC}"
+echo -e "${YELLOW}📊 Collecting CPU usage (20s @ 50ms interval)...${NC}"
 NLOAD_CPU=$(get_cpu_usage "nload -t 50")
 RUST_CPU=$(get_cpu_usage "./rust/$RUST_BIN -t 50")
 PY_CPU=$(get_cpu_usage "$PY_CMD -t 50")
