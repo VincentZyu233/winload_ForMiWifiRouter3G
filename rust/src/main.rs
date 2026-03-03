@@ -410,6 +410,20 @@ fn main() -> io::Result<()> {
     let lang = pre_scan_lang();
     set_lang(lang);
 
+    // Pre-scan --version / -V for styled output with system info
+    // (intercept before clap, so we can use ANSI bold + append system info)
+    {
+        let raw_args: Vec<String> = std::env::args().collect();
+        if raw_args.iter().any(|a| a == "--version" || a == "-V") {
+            println!("\x1b[1mwinload {} (Rust edition)\x1b[0m", env!("CARGO_PKG_VERSION"));
+            println!("System: {} | Arch: {} | Target: {}",
+                std::env::consts::OS,
+                std::env::consts::ARCH,
+                env!("TARGET"));
+            return Ok(());
+        }
+    }
+
     let cmd = build_translated_command();
     let matches = cmd.get_matches();
     let args = Args::from_arg_matches(&matches)
