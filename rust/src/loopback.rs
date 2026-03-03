@@ -53,12 +53,45 @@ pub mod platform {
     use super::*;
     use std::thread;
 
+    /// Check if wpcap.dll (Npcap) is available on this system.
+    /// Must be called before any pcap API calls when using /DELAYLOAD,
+    /// otherwise the delay-load helper will raise a fatal exception.
+    #[cfg(feature = "npcap")]
+    fn is_npcap_installed() -> bool {
+        extern "system" {
+            fn LoadLibraryA(name: *const u8) -> *mut std::ffi::c_void;
+            fn FreeLibrary(handle: *mut std::ffi::c_void) -> i32;
+        }
+        unsafe {
+            let handle = LoadLibraryA(b"wpcap.dll\0".as_ptr());
+            if handle.is_null() {
+                false
+            } else {
+                FreeLibrary(handle);
+                true
+            }
+        }
+    }
+
     /// 启动 Npcap 回环捕获线程
     ///
     /// 返回 Ok(info_msg) 成功时，后台线程会持续累加计数器。
     /// 返回 Err(msg) 如果 Npcap 不可用或打开设备失败。
     #[cfg(feature = "npcap")]
     pub fn start_npcap(counters: LoopbackCounters) -> Result<String, String> {
+        // Pre-flight: verify wpcap.dll is loadable before calling any pcap functions.
+        // The binary uses /DELAYLOAD:wpcap.dll, so pcap functions are not resolved
+        // until first call. If the DLL is missing, that first call would crash.
+        if !is_npcap_installed() {
+            return Err(format!(
+                "Npcap is not installed on this system.\n\n\
+                 The --npcap flag requires Npcap to capture loopback traffic.\n\
+                 Please install Npcap from: {NPCAP_URL}\n\
+                 (Enable 'Support loopback traffic capture' during installation)\n\n\
+                 Or run without the --npcap flag."
+            ));
+        }
+
         // 尝试查找 Npcap Loopback 适配器
         let devices = pcap::Device::list().map_err(|e| {
             format!(
