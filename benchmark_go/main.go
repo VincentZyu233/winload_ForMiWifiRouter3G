@@ -201,7 +201,7 @@ func generateSVG(data BenchmarkData) string {
     .label { font-family: 'Segoe UI', sans-serif; font-size: 12px; fill: #e6edf3; }
     .value { font-family: 'Segoe UI', sans-serif; font-size: 12px; fill: #8b949e; }
     .bar-bg { fill: #161b22; rx: 4; }
-    .row { opacity: 0; animation: fadeInRight 0.5s ease forwards; }
+    .row { opacity: 0; animation: fadeInRight 0.8s ease forwards; }
     @keyframes fadeInRight { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
   </style>
 </defs>
@@ -249,8 +249,8 @@ func generateSVG(data BenchmarkData) string {
 				w = 2
 			} // min width
 
-			// delay relative to previous items
-			delay := float64(gIdx)*0.2 + float64(i)*0.1
+			// delay relative to previous items (~10s total playback)
+			delay := float64(gIdx)*2.5 + float64(i)*0.6
 			y := currentY + float64(i)*(barHeight+barPadding)
 
 			sb.WriteString(fmt.Sprintf(`<g class="row" style="animation-delay: %.1fs">
@@ -266,7 +266,7 @@ func generateSVG(data BenchmarkData) string {
 
 			// Bar Fill
 			sb.WriteString(fmt.Sprintf(`<rect x="140" y="%.0f" width="%.0f" height="20" rx="3" fill="%s">
-  <animate attributeName="width" from="0" to="%.0f" dur="0.8s" begin="%.1fs" fill="freeze"/>
+  <animate attributeName="width" from="0" to="%.0f" dur="1.5s" begin="%.1fs" fill="freeze"/>
 </rect>
 `, y+6, w, item.Color, w, delay))
 

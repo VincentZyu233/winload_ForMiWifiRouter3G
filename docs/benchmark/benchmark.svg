@@ -8,7 +8,7 @@
     .label { font-family: 'Segoe UI', sans-serif; font-size: 12px; fill: #e6edf3; }
     .value { font-family: 'Segoe UI', sans-serif; font-size: 12px; fill: #8b949e; }
     .bar-bg { fill: #161b22; rx: 4; }
-    .row { opacity: 0; animation: fadeInRight 0.5s ease forwards; }
+    .row { opacity: 0; animation: fadeInRight 0.8s ease forwards; }
     @keyframes fadeInRight { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
   </style>
 </defs>
@@ -23,100 +23,100 @@
 <text class="label" x="30" y="210">nload (C++)</text>
 <rect class="bar-bg" x="140" y="196" width="300" height="20"/>
 <rect x="140" y="196" width="2" height="20" rx="3" fill="#ffd43b">
-  <animate attributeName="width" from="0" to="2" dur="0.8s" begin="0.0s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="2" dur="1.5s" begin="0.0s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="210">2.5 ms</text>
+<text class="value" x="450" y="210">2.6 ms</text>
 </g>
-<g class="row" style="animation-delay: 0.1s">
+<g class="row" style="animation-delay: 0.6s">
 <text class="label" x="30" y="246">winload (Rust)</text>
 <rect class="bar-bg" x="140" y="232" width="300" height="20"/>
-<rect x="140" y="232" width="8" height="20" rx="3" fill="#dea584">
-  <animate attributeName="width" from="0" to="8" dur="0.8s" begin="0.1s" fill="freeze"/>
+<rect x="140" y="232" width="7" height="20" rx="3" fill="#dea584">
+  <animate attributeName="width" from="0" to="7" dur="1.5s" begin="0.6s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="246">8.7 ms</text>
+<text class="value" x="450" y="246">8.2 ms</text>
 </g>
-<g class="row" style="animation-delay: 0.2s">
+<g class="row" style="animation-delay: 1.2s">
 <text class="label" x="30" y="282">winload (Py)</text>
 <rect class="bar-bg" x="140" y="268" width="300" height="20"/>
 <rect x="140" y="268" width="300" height="20" rx="3" fill="#3572A5">
-  <animate attributeName="width" from="0" to="300" dur="0.8s" begin="0.2s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="300" dur="1.5s" begin="1.2s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="282">325.4 ms</text>
+<text class="value" x="450" y="282">332.5 ms</text>
 </g>
 <text class="group-title" x="30" y="333">Binary Size (lower is better)</text>
-<g class="row" style="animation-delay: 0.2s">
+<g class="row" style="animation-delay: 2.5s">
 <text class="label" x="30" y="368">nload (C++)</text>
 <rect class="bar-bg" x="140" y="354" width="300" height="20"/>
 <rect x="140" y="354" width="34" height="20" rx="3" fill="#ffd43b">
-  <animate attributeName="width" from="0" to="34" dur="0.8s" begin="0.2s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="34" dur="1.5s" begin="2.5s" fill="freeze"/>
 </rect>
 <text class="value" x="450" y="368">0.13 MB</text>
 </g>
-<g class="row" style="animation-delay: 0.3s">
+<g class="row" style="animation-delay: 3.1s">
 <text class="label" x="30" y="404">winload (Rust)</text>
 <rect class="bar-bg" x="140" y="390" width="300" height="20"/>
 <rect x="140" y="390" width="300" height="20" rx="3" fill="#dea584">
-  <animate attributeName="width" from="0" to="300" dur="0.8s" begin="0.3s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="300" dur="1.5s" begin="3.1s" fill="freeze"/>
 </rect>
 <text class="value" x="450" y="404">1.17 MB</text>
 </g>
-<g class="row" style="animation-delay: 0.4s">
+<g class="row" style="animation-delay: 3.7s">
 <text class="label" x="30" y="440">winload (Py)</text>
 <rect class="bar-bg" x="140" y="426" width="300" height="20"/>
 <rect x="140" y="426" width="229" height="20" rx="3" fill="#3572A5">
-  <animate attributeName="width" from="0" to="229" dur="0.8s" begin="0.4s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="229" dur="1.5s" begin="3.7s" fill="freeze"/>
 </rect>
 <text class="value" x="450" y="440">0.90 MB</text>
 </g>
 <text class="group-title" x="30" y="491">Memory Usage (RSS) (lower is better)</text>
-<g class="row" style="animation-delay: 0.4s">
+<g class="row" style="animation-delay: 5.0s">
 <text class="label" x="30" y="526">nload (C++)</text>
 <rect class="bar-bg" x="140" y="512" width="300" height="20"/>
 <rect x="140" y="512" width="61" height="20" rx="3" fill="#ffd43b">
-  <animate attributeName="width" from="0" to="61" dur="0.8s" begin="0.4s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="61" dur="1.5s" begin="5.0s" fill="freeze"/>
 </rect>
 <text class="value" x="450" y="526">3.9 MB</text>
 </g>
-<g class="row" style="animation-delay: 0.5s">
+<g class="row" style="animation-delay: 5.6s">
 <text class="label" x="30" y="562">winload (Rust)</text>
 <rect class="bar-bg" x="140" y="548" width="300" height="20"/>
 <rect x="140" y="548" width="51" height="20" rx="3" fill="#dea584">
-  <animate attributeName="width" from="0" to="51" dur="0.8s" begin="0.5s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="51" dur="1.5s" begin="5.6s" fill="freeze"/>
 </rect>
 <text class="value" x="450" y="562">3.2 MB</text>
 </g>
-<g class="row" style="animation-delay: 0.6s">
+<g class="row" style="animation-delay: 6.2s">
 <text class="label" x="30" y="598">winload (Py)</text>
 <rect class="bar-bg" x="140" y="584" width="300" height="20"/>
 <rect x="140" y="584" width="300" height="20" rx="3" fill="#3572A5">
-  <animate attributeName="width" from="0" to="300" dur="0.8s" begin="0.6s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="300" dur="1.5s" begin="6.2s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="598">19.2 MB</text>
+<text class="value" x="450" y="598">19.0 MB</text>
 </g>
 <text class="group-title" x="30" y="649">CPU Usage (20s @ 50ms) (lower is better)</text>
-<g class="row" style="animation-delay: 0.6s">
+<g class="row" style="animation-delay: 7.5s">
 <text class="label" x="30" y="684">nload (C++)</text>
 <rect class="bar-bg" x="140" y="670" width="300" height="20"/>
-<rect x="140" y="670" width="6" height="20" rx="3" fill="#ffd43b">
-  <animate attributeName="width" from="0" to="6" dur="0.8s" begin="0.6s" fill="freeze"/>
+<rect x="140" y="670" width="9" height="20" rx="3" fill="#ffd43b">
+  <animate attributeName="width" from="0" to="9" dur="1.5s" begin="7.5s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="684">0.65%</text>
+<text class="value" x="450" y="684">0.70%</text>
 </g>
-<g class="row" style="animation-delay: 0.7s">
+<g class="row" style="animation-delay: 8.1s">
 <text class="label" x="30" y="720">winload (Rust)</text>
 <rect class="bar-bg" x="140" y="706" width="300" height="20"/>
 <rect x="140" y="706" width="2" height="20" rx="3" fill="#dea584">
-  <animate attributeName="width" from="0" to="2" dur="0.8s" begin="0.7s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="2" dur="1.5s" begin="8.1s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="720">0.05%</text>
+<text class="value" x="450" y="720">0.00%</text>
 </g>
-<g class="row" style="animation-delay: 0.8s">
+<g class="row" style="animation-delay: 8.7s">
 <text class="label" x="30" y="756">winload (Py)</text>
 <rect class="bar-bg" x="140" y="742" width="300" height="20"/>
 <rect x="140" y="742" width="300" height="20" rx="3" fill="#3572A5">
-  <animate attributeName="width" from="0" to="300" dur="0.8s" begin="0.8s" fill="freeze"/>
+  <animate attributeName="width" from="0" to="300" dur="1.5s" begin="8.7s" fill="freeze"/>
 </rect>
-<text class="value" x="450" y="756">33.33%</text>
+<text class="value" x="450" y="756">23.53%</text>
 </g>
-<text class="subtitle" x="30" y="807">📅 Updated: 2026-03-04 00:53:20</text>
+<text class="subtitle" x="30" y="807">📅 Updated: 2026-03-04 01:00:07</text>
 </svg>
