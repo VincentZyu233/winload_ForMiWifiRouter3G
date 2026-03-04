@@ -30,10 +30,10 @@
 > **[📖 Build Docs](.github/workflows/build.md)**
 
 ## 🚀 Introduction
-Winload brings an intuitive, visual network monitor to the modern terminal. It started as a Windows-focused tool to fill the nload gap, and now targets Linux and macOS as well.
+`Winload` brings an intuitive, visual network monitor to the modern terminal. It started as a Windows-focused tool to fill the `nload` gap, and now targets Linux and macOS as well.
 
 ## 🙏 Acknowledgements
-Winload is inspired by the classic nload project by Roland Riegel. Many thanks for the original idea and experience.
+Winload is inspired by the classic 「[nload](https://github.com/rolandriegel/nload)」 project by Roland Riegel. Many thanks for the original idea and experience.
 https://github.com/rolandriegel/nload
 
 ## ✨ Key Features
@@ -119,6 +119,7 @@ which winload
 **🇨🇳 Gitee mirror (faster in China Mainland):**
 ```bash
 curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash
+which winload
 ```
 > 📄 [View Gitee install script](https://gitee.com/vincent-zyu/winload/blob/main/docs/install_scripts/install_gitee.sh)
 

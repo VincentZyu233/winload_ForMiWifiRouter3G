@@ -1097,14 +1097,15 @@ jobs:
               echo ""
               echo "$(ts) ──── [$CURRENT/$TOTAL] $FILENAME ($FILESIZE_H) ────"
               
-              # 重试 3 次，超时 120s，间隔 10s
+              # 重试 3 次，超时 1200s (20min)，间隔 10s
+              # Gitee 上传速度约 10KB/s，3MB 文件需要 ~300s
               UPLOADED=false
               for ATTEMPT in 1 2 3; do
-                echo "$(ts)   🔄 Attempt $ATTEMPT/3 — starting curl (max-time=120s, connect-timeout=30s)"
+                echo "$(ts)   🔄 Attempt $ATTEMPT/3 — starting curl (max-time=1200s, connect-timeout=30s)"
                 
                 START_TIME=$(date +%s)
                 HTTP_CODE_FILE=$(mktemp)
-                RESPONSE=$(curl -s --max-time 120 --connect-timeout 30 \
+                RESPONSE=$(curl -s --max-time 1200 --connect-timeout 30 \
                   -w "\n%{http_code}" \
                   -X POST --header "Content-Type: multipart/form-data" \
                   -F "access_token=${GITEE_TOKEN}" \

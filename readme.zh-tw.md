@@ -30,10 +30,10 @@
 > **[📖 建置文檔](.github/workflows/build.zh-tw.md)**
 
 ## 🚀 簡介
-Winload 是一個直觀的終端網路流量監控工具。最初為 Windows 打造，彌補 nload 在 Windows 上的空白，現已支援 Linux 和 macOS。
+`Winload` 是一個直觀的終端網路流量監控工具。最初為 Windows 打造，彌補 `nload` 在 Windows 上的空白，現已支援 Linux 和 macOS。
 
 ## 🙏 致謝
-Winload 的靈感來自 Roland Riegel 的經典 nload 項目，感謝原作者的創意與體驗。
+Winload 的靈感來自 Roland Riegel 的經典 「[nload](https://github.com/rolandriegel/nload)」 項目，感謝原作者的創意與體驗。
 https://github.com/rolandriegel/nload
 
 ## ✨ 主要特性
@@ -119,6 +119,7 @@ which winload
 **🇨🇳 Gitee 鏡像（大陸地區下載更快）：**
 ```bash
 curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash
+which winload
 ```
 > 📄 [查看 Gitee 安裝指令稿原始碼](https://gitee.com/vincent-zyu/winload/blob/main/docs/install_scripts/install_gitee.sh)
 

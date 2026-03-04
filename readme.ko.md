@@ -30,10 +30,11 @@
 > **[📖 빌드 문서](.github/workflows/build.md)**
 
 ## 🚀 소개
-Winload는 현대적인 터미널 환경에서 직관적이고 시각적인 네트워크 모니터링 기능을 제공합니다. 처음에는 Windows 환경에서 `nload`의 공백을 메우기 위한 도구로 시작되었으나, 현재는 Linux와 macOS까지 지원 범위를 확장했습니다.
+`Winload`는 현대적인 터미널 환경에서 직관적이고 시각적인 네트워크 모니터링 기능을 제공합니다. 처음에는 Windows 환경에서 `nload`의 공백을 메우기 위한 도구로 시작되었으나, 현재는 Linux와 macOS까지 지원 범위를 확장했습니다.
 
 ## 🙏 감사의 말
-Winload는 Roland Riegel의 고전적인 프로젝트인 [nload](https://github.com/rolandriegel/nload)에서 영감을 얻었습니다. 독창적인 아이디어와 훌륭한 사용자 경험을 제공해 준 원작자에게 깊은 감사를 표합니다.
+Winload는 Roland Riegel의 고전적인 프로젝트인 「[nload](https://github.com/rolandriegel/nload)」에서 영감을 얻었습니다. 독창적인 아이디어와 훌륭한 사용자 경험을 제공해 준 원작자에게 깊은 감사를 표합니다.
+https://github.com/rolandriegel/nload
 
 ## ✨ 주요 기능
 - **두 가지 구현 방식 제공**
@@ -118,6 +119,7 @@ which winload
 **🇨🇳 Gitee 미러 (중국 본토 내 빠른 다운로드):**
 ```bash
 curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash
+which winload
 ```
 > 📄 [Gitee 설치 스크립트 소스 보기](https://gitee.com/vincent-zyu/winload/blob/main/docs/install_scripts/install_gitee.sh)
 

@@ -30,10 +30,10 @@
 > **[📖 ビルドドキュメント](.github/workflows/build.md)**
 
 ## 🚀 はじめに
-Winloadは、直感的で視覚的なネットワークモニターをモダンなターミナルにもたらします。もともとはWindowsにおけるnloadの代替ツールとして開発が始まりましたが、現在はLinuxやmacOSもサポートしています。
+`Winload`は、直感的で視覚的なネットワークモニターをモダンなターミナルにもたらします。もともとはWindowsにおける`nload`の代替ツールとして開発が始まりましたが、現在はLinuxやmacOSもサポートしています。
 
 ## 🙏 謝辞
-Winloadは、Roland Riegel氏によるクラシックなプロジェクト「nload」にインスパイアされています。素晴らしいアイデアとユーザー体験に深く感謝いたします。
+Winloadは、Roland Riegel氏によるクラシックなプロジェクト「[nload](https://github.com/rolandriegel/nload)」にインスパイアされています。素晴らしいアイデアとユーザー体験に深く感謝いたします。
 https://github.com/rolandriegel/nload
 
 ## ✨ 主な特徴
@@ -119,6 +119,7 @@ which winload
 **🇨🇳 Giteeミラー（中国本土内での高速ダウンロード）：**
 ```bash
 curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash
+which winload
 ```
 > 📄 [Giteeインストールスクリプトを表示](https://gitee.com/vincent-zyu/winload/blob/main/docs/install_scripts/install_gitee.sh)
 
