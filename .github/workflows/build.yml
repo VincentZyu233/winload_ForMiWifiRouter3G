@@ -1068,23 +1068,39 @@ jobs:
           
           SUCCESS=0
           FAIL=0
+          TOTAL=$(ls -1 assets/ | wc -l)
+          CURRENT=0
           for FILE in assets/*; do
             if [ -f "$FILE" ]; then
+              CURRENT=$((CURRENT + 1))
               FILENAME=$(basename "$FILE")
-              echo "  Uploading: $FILENAME"
+              FILESIZE=$(stat -c%s "$FILE" 2>/dev/null || stat -f%z "$FILE" 2>/dev/null)
+              echo "  [$CURRENT/$TOTAL] Uploading: $FILENAME ($(numfmt --to=iec $FILESIZE 2>/dev/null || echo "${FILESIZE} bytes"))"
               
-              RESPONSE=$(curl -s -X POST --header "Content-Type: multipart/form-data" \
-                -F "access_token=${GITEE_TOKEN}" \
-                -F "file=@${FILE}" \
-                "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/${RELEASE_ID}/attach_files")
-              
-              if echo "$RESPONSE" | jq -e '.browser_download_url' > /dev/null 2>&1; then
-                echo "    ✅ Uploaded: $(echo "$RESPONSE" | jq -r '.browser_download_url')"
-                SUCCESS=$((SUCCESS + 1))
-              else
-                echo "    ⚠️ Upload may have failed: $(echo "$RESPONSE" | head -c 200)"
-                FAIL=$((FAIL + 1))
-              fi
+              # 超时 300s (5min)，避免 Gitee 响应慢时 curl 无限挂起
+              # 重试 2 次，间隔 10s
+              for ATTEMPT in 1 2 3; do
+                RESPONSE=$(curl -s --max-time 300 --connect-timeout 30 \
+                  -X POST --header "Content-Type: multipart/form-data" \
+                  -F "access_token=${GITEE_TOKEN}" \
+                  -F "file=@${FILE}" \
+                  "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/${RELEASE_ID}/attach_files")
+                CURL_EXIT=$?
+                
+                if [ $CURL_EXIT -eq 0 ] && echo "$RESPONSE" | jq -e '.browser_download_url' > /dev/null 2>&1; then
+                  echo "    ✅ Uploaded: $(echo "$RESPONSE" | jq -r '.browser_download_url')"
+                  SUCCESS=$((SUCCESS + 1))
+                  break
+                fi
+                
+                if [ $ATTEMPT -lt 3 ]; then
+                  echo "    ⚠️ Attempt $ATTEMPT failed (curl exit=$CURL_EXIT), retrying in 10s..."
+                  sleep 10
+                else
+                  echo "    ❌ Failed after 3 attempts: $(echo "$RESPONSE" | head -c 200)"
+                  FAIL=$((FAIL + 1))
+                fi
+              done
             fi
           done
           
