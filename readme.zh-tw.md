@@ -116,6 +116,14 @@ which winload
 ```
 > 📄 [查看安裝指令稿原始碼](https://github.com/VincentZyuApps/winload/blob/main/docs/install_scripts/install.sh)
 
+**🇨🇳 Gitee 鏡像（大陸地區下載更快）：**
+```bash
+curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash
+```
+> 📄 [查看 Gitee 安裝指令稿原始碼](https://gitee.com/vincent-zyu/winload/blob/main/docs/install_scripts/install_gitee.sh)
+
+> ⚠️ 以上安裝指令稿僅適用於使用 **apt 或 dnf** 套件管理器的 **x86_64 / aarch64** 架構系統。其他平台請使用 **npm**（`npm install -g @vincentzyuapps/winload`）或 **Cargo**（`cargo install winload`）安裝。
+
 <details>
 <summary>手動安裝</summary>
 

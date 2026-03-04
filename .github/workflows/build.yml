@@ -476,6 +476,16 @@ jobs:
             echo '```'
             echo "> 📄 [View install script source](https://github.com/${REPO}/blob/main/docs/install_scripts/install.sh)"
             echo ""
+            echo "**🇨🇳 Gitee mirror (faster in China):**"
+            echo '```bash'
+            echo "curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash"
+            echo '```'
+            echo "> 📄 [View Gitee install script](https://gitee.com/vincent-zyu/winload/blob/main/docs/install_scripts/install_gitee.sh)"
+            echo ""
+            echo "> ⚠️ These install scripts only support systems with **apt or dnf** on **x86_64 / aarch64**. For other platforms, use **npm** or **Cargo**."
+            echo "> "
+            echo "> ⚠️ 以上安装脚本仅适用于使用 **apt 或 dnf** 的 **x86_64 / aarch64** 系统。其他平台请使用 **npm** 或 **Cargo** 安装。"
+            echo ""
             echo "---"
             echo ""
             echo "### What's Changed"
@@ -1064,44 +1074,86 @@ jobs:
         if: steps.gitee_release.outputs.release_id != '' && steps.gitee_release.outputs.release_id != 'null'
         run: |
           RELEASE_ID="${{ steps.gitee_release.outputs.release_id }}"
-          echo "📤 Uploading assets to Gitee release (ID: $RELEASE_ID)"
+          
+          # 时间戳函数：同时输出 UTC 和 上海时间
+          ts() {
+            echo "[$(date -u '+%H:%M:%S UTC') / $(TZ='Asia/Shanghai' date '+%H:%M:%S CST')]"
+          }
+          
+          echo "$(ts) 📤 Uploading assets to Gitee release (ID: $RELEASE_ID)"
           
           SUCCESS=0
           FAIL=0
           TOTAL=$(ls -1 assets/ | wc -l)
           CURRENT=0
+          echo "$(ts) 📁 Total files to upload: $TOTAL"
+          
           for FILE in assets/*; do
             if [ -f "$FILE" ]; then
               CURRENT=$((CURRENT + 1))
               FILENAME=$(basename "$FILE")
               FILESIZE=$(stat -c%s "$FILE" 2>/dev/null || stat -f%z "$FILE" 2>/dev/null)
-              echo "  [$CURRENT/$TOTAL] Uploading: $FILENAME ($(numfmt --to=iec $FILESIZE 2>/dev/null || echo "${FILESIZE} bytes"))"
+              FILESIZE_H=$(numfmt --to=iec $FILESIZE 2>/dev/null || echo "${FILESIZE} bytes")
+              echo ""
+              echo "$(ts) ──── [$CURRENT/$TOTAL] $FILENAME ($FILESIZE_H) ────"
               
-              # 超时 300s (5min)，避免 Gitee 响应慢时 curl 无限挂起
-              # 重试 2 次，间隔 10s
+              # 重试 3 次，超时 120s，间隔 10s
+              UPLOADED=false
               for ATTEMPT in 1 2 3; do
-                RESPONSE=$(curl -s --max-time 300 --connect-timeout 30 \
+                echo "$(ts)   🔄 Attempt $ATTEMPT/3 — starting curl (max-time=120s, connect-timeout=30s)"
+                
+                START_TIME=$(date +%s)
+                HTTP_CODE_FILE=$(mktemp)
+                RESPONSE=$(curl -s --max-time 120 --connect-timeout 30 \
+                  -w "\n%{http_code}" \
                   -X POST --header "Content-Type: multipart/form-data" \
                   -F "access_token=${GITEE_TOKEN}" \
                   -F "file=@${FILE}" \
                   "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/${RELEASE_ID}/attach_files")
                 CURL_EXIT=$?
+                END_TIME=$(date +%s)
+                ELAPSED=$((END_TIME - START_TIME))
                 
-                if [ $CURL_EXIT -eq 0 ] && echo "$RESPONSE" | jq -e '.browser_download_url' > /dev/null 2>&1; then
-                  echo "    ✅ Uploaded: $(echo "$RESPONSE" | jq -r '.browser_download_url')"
+                # 分离 HTTP status code 和 response body
+                HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+                BODY=$(echo "$RESPONSE" | sed '$d')
+                
+                echo "$(ts)   📡 curl exit=$CURL_EXIT, HTTP=$HTTP_CODE, took ${ELAPSED}s"
+                
+                if [ $CURL_EXIT -ne 0 ]; then
+                  case $CURL_EXIT in
+                    28) echo "$(ts)   ⏱️ TIMEOUT: curl exceeded max-time (${ELAPSED}s)" ;;
+                    7)  echo "$(ts)   🔌 CONNECTION REFUSED: Gitee server unreachable" ;;
+                    56) echo "$(ts)   💥 RECV ERROR: connection reset during transfer" ;;
+                    *)  echo "$(ts)   ❓ CURL ERROR $CURL_EXIT (see https://curl.se/libcurl/c/libcurl-errors.html)" ;;
+                  esac
+                elif echo "$BODY" | jq -e '.browser_download_url' > /dev/null 2>&1; then
+                  URL=$(echo "$BODY" | jq -r '.browser_download_url')
+                  echo "$(ts)   ✅ SUCCESS: $URL"
                   SUCCESS=$((SUCCESS + 1))
+                  UPLOADED=true
                   break
+                else
+                  echo "$(ts)   ⚠️ UNEXPECTED RESPONSE (HTTP $HTTP_CODE):"
+                  echo "$(ts)   $(echo "$BODY" | head -c 300)"
                 fi
                 
                 if [ $ATTEMPT -lt 3 ]; then
-                  echo "    ⚠️ Attempt $ATTEMPT failed (curl exit=$CURL_EXIT), retrying in 10s..."
+                  echo "$(ts)   💤 Waiting 10s before retry..."
                   sleep 10
-                else
-                  echo "    ❌ Failed after 3 attempts: $(echo "$RESPONSE" | head -c 200)"
-                  FAIL=$((FAIL + 1))
                 fi
               done
+              
+              if [ "$UPLOADED" = false ]; then
+                echo "$(ts)   ❌ GAVE UP on $FILENAME after 3 attempts"
+                FAIL=$((FAIL + 1))
+              fi
             fi
           done
+          
+          echo ""
+          echo "$(ts) ════════════════════════════════════════"
+          echo "$(ts) 📊 Upload summary: $SUCCESS/$TOTAL succeeded, $FAIL failed"
+          echo "$(ts) ════════════════════════════════════════"
           
           echo "📊 Upload complete: $SUCCESS succeeded, $FAIL failed"

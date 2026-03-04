@@ -116,6 +116,14 @@ which winload
 ```
 > 📄 [インストールスクリプトのソースを表示](https://github.com/VincentZyuApps/winload/blob/main/docs/install_scripts/install.sh)
 
+**🇨🇳 Giteeミラー（中国本土内での高速ダウンロード）：**
+```bash
+curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash
+```
+> 📄 [Giteeインストールスクリプトを表示](https://gitee.com/vincent-zyu/winload/blob/main/docs/install_scripts/install_gitee.sh)
+
+> ⚠️ これらのインストールスクリプトは、**apt または dnf** パッケージマネージャーを持つ **x86_64 / aarch64** アーキテクチャのシステムのみ対応しています。その他のプラットフォームでは **npm**（`npm install -g @vincentzyuapps/winload`）または **Cargo**（`cargo install winload`）をご利用ください。
+
 <details>
 <summary>手動インストール</summary>
 

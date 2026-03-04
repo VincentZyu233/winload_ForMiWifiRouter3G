@@ -17,8 +17,8 @@ case "$ARCH" in
     echo "   Only x86_64 and aarch64 are supported."
     echo ""
     echo "   Alternatives:"
-    echo "   • npm (cross-platform): npx winload-rust-bin"
-    echo "     https://www.npmjs.com/package/winload-rust-bin"
+    echo "   • npm (cross-platform): npm install -g @vincentzyuapps/winload"
+    echo "     https://www.npmjs.com/package/@vincentzyuapps/winload"
     echo "   • Manual download: https://github.com/${REPO}/releases"
     echo "   • Build from source: https://github.com/${REPO}"
     exit 1
@@ -34,8 +34,8 @@ else
   echo "❌ Unsupported package manager."
   echo "   This installer only supports apt (Debian/Ubuntu) and dnf (Fedora/RHEL)."
   echo "   Alternatives:"
-  echo "   • npm (cross-platform): npx winload-rust-bin"
-  echo "     https://www.npmjs.com/package/winload-rust-bin"
+  echo "   • npm (cross-platform): npm install -g @vincentzyuapps/winload"
+  echo "     https://www.npmjs.com/package/@vincentzyuapps/winload"
   echo "   • Manual download: https://github.com/${REPO}/releases"
   echo "   • Build from source: https://github.com/${REPO}"
   exit 1
@@ -96,3 +96,9 @@ if [ "$PKG_MGR" = "apt" ]; then
 elif [ "$PKG_MGR" = "dnf" ]; then
   echo "   sudo dnf remove winload"
 fi
+echo ""
+echo "   📖 GitHub: https://github.com/${REPO}"
+echo "   📖 Gitee:  https://gitee.com/vincent-zyu/winload"
+echo ""
+echo "   🇨🇳 Gitee mirror (faster in China / 国内镜像，下载更快):"
+echo "   curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash"
