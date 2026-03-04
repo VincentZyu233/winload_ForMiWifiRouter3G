@@ -100,6 +100,8 @@ git commit -m "feat: add dark mode support"
 | Android | ARM64 | `aarch64-linux-android` | Cross-compiled on Ubuntu runner with NDK (API 24), mainly for Termux on ARM phones |
 | Android | x86_64 | `x86_64-linux-android` | Cross-compiled on Ubuntu runner with NDK (API 24), mainly for emulators / Chromebooks |
 
+> **Note:** Linux targets (x64 and ARM64) also generate `.deb` and `.rpm` packages in addition to the standalone binary.
+
 ## 📦 Pipeline Stages (Rust)
 
 ```
@@ -111,10 +113,14 @@ check ──→ build ──→ release ──→ publish
   │         │         │           ├─ AUR: Download Linux binaries
   │         │         │           │  Generate PKGBUILD & .SRCINFO → Push to AUR
   │         │         │           │
-  │         │         │           └─ npm: Download 6 platform binaries
-  │         │         │              Publish platform packages (os/cpu scoped)
-  │         │         │              Publish main package (@vincentzyuapps/winload)
-  │         │         │              Sync to GitHub Packages (npm.pkg.github.com)
+  │         │         │           ├─ npm: Download 6 platform binaries
+  │         │         │           │  Publish platform packages (os/cpu scoped)
+  │         │         │           │  Publish main package (@vincentzyuapps/winload)
+  │         │         │           │  Sync to GitHub Packages (npm.pkg.github.com)
+  │         │         │           │
+  │         │         │           └─ Gitee: Download GitHub Release assets
+  │         │         │              Create Gitee Release via API
+  │         │         │              Upload assets to Gitee
   │         │         │
   │         │         └─ Download artifacts
   │         │            Delete old release/tag
@@ -123,6 +129,9 @@ check ──→ build ──→ release ──→ publish
   │         │
   │         └─ Compile for 8 platform targets
   │            Upload build artifacts
+  │
+  ├─→ sync-gitee-code (parallel with check, every push)
+  │    Mirror all branches/tags to Gitee via hub-mirror-action
   │
   ├─→ benchmark (independent, triggered by 'run benchmark')
   │    Run benchmark_go/benchmark.sh
@@ -135,11 +144,17 @@ check ──→ build ──→ release ──→ publish
        uv build → uv publish
 ```
 
+> **Note:** Release notes are auto-generated and include a download table (all platforms), quick install commands (pip/npm/cargo/scoop/AUR), and a changelog from git commits.
+
 ```mermaid
 flowchart TB
     subgraph check["check"]
         C1[Parse commit message]
         C2[Extract version from Cargo.toml]
+    end
+    
+    subgraph syncCode["sync-gitee-code"]
+        SC1[Mirror to Gitee]
     end
     
     subgraph build["build"]
@@ -173,6 +188,12 @@ flowchart TB
         N4[Sync to GitHub Packages]
     end
     
+    subgraph syncRelease["sync-gitee-release"]
+        SR1[Download GitHub Release]
+        SR2[Create Gitee Release]
+        SR3[Upload assets]
+    end
+    
     subgraph benchmark["benchmark"]
         BM1[Run benchmark.sh]
         BM2[Commit & Push SVG]
@@ -188,6 +209,7 @@ flowchart TB
     end
 
     C1 --> C2
+    C1 -."every push".-> SC1
     C2 --> B1
     C2 --"run benchmark"--> BM1
     C2 --> PY1
@@ -203,6 +225,8 @@ flowchart TB
     A1 --> A2 --> A3
     R4 --> N1
     N1 --> N2 --> N3 --> N4
+    R4 --> SR1
+    SR1 --> SR2 --> SR3
 ```
 
 ## 🍺 Scoop Publish (Rust)
@@ -273,6 +297,32 @@ A repository secret `CARGO_REGISTRY_TOKEN` must be set in **Settings → Secrets
 
 > **Note:** This job runs in parallel with Scoop/AUR/npm after the build completes, ensuring the compiled binary is ready before publishing.
 
+## 🔄 Gitee Sync
+
+Automatically mirrors code and releases to [Gitee](https://gitee.com/vincent-zyu/winload) (Chinese GitHub alternative).
+
+### sync-gitee-code — Code Mirror
+
+Runs **on every push** (parallel with `check` job):
+- Uses [Yikun/hub-mirror-action](https://github.com/Yikun/hub-mirror-action) to mirror all branches, tags, and commits
+- Triggered automatically, no keyword needed
+
+### sync-gitee-release — Release Mirror
+
+Runs **after `release` job succeeds** (parallel with Scoop/AUR/npm):
+1. Downloads all assets from the GitHub Release
+2. Creates a corresponding Release on Gitee via API
+3. Uploads all binary assets to Gitee Release
+
+### Prerequisites
+
+| Secret | Where to get | Purpose |
+|--------|--------------|---------|
+| `GITEE_PRIVATE_KEY` | SSH key pair (see [setup guide](../../docs/dev/commit和release从github同步到gitee捏.md)) | Push code via hub-mirror-action |
+| `GITEE_TOKEN` | [Gitee Personal Access Token](https://gitee.com/profile/personal_access_tokens) | Create Release & upload assets via API |
+
+> **Note:** For detailed setup instructions, see [commit和release从github同步到gitee捏.md](../../docs/dev/commit和release从github同步到gitee捏.md).
+
 ## 📌 Version
 
 The version is automatically extracted from `rust/Cargo.toml` (Rust) or `py/pyproject.toml` (Python) and used for:
@@ -291,3 +341,5 @@ The version is automatically extracted from `rust/Cargo.toml` (Rust) or `py/pypr
 | `NPM_TOKEN` | npm Automation token | Publish to npm |
 | `PYPI_TOKEN` | PyPI API token (Scope: "Entire account") | Push to PyPI |
 | `CARGO_REGISTRY_TOKEN` | crates.io API token | Publish to crates.io |
+| `GITEE_PRIVATE_KEY` | SSH private key for Gitee | Mirror code to Gitee |
+| `GITEE_TOKEN` | Gitee Personal Access Token | Create Gitee releases |

@@ -95,10 +95,12 @@ git commit -m "feat: add dark mode support"
 | Windows | ARM64 | `aarch64-pc-windows-msvc` | 在 Windows x64 runner 上用 MSVC 交叉編譯，主要用於 ARM Windows 裝置（高通驍龍 X Elite/Plus 筆電、Surface Pro X 等） |
 | Linux | x64 | `x86_64-unknown-linux-musl` | 在 Ubuntu runner 上用 musl 靜態連結編譯，主要用於所有 x64 Linux 發行版（大部分雲端伺服器） |
 | Linux | ARM64 | `aarch64-unknown-linux-gnu` | 在 ubuntu-22.04 上用 gcc-aarch64 交叉編譯，主要用於 ARM64 伺服器 / 單板機（樹莓派等） |
-| macOS | x64 | `x86_64-apple-darwin` | 在 Apple Silicon runner 上透過 Rosetta 編譯，主要用於 Intel Mac（2020 年及更早的舁款 Mac） |
+| macOS | x64 | `x86_64-apple-darwin` | 在 Apple Silicon runner 上透過 Rosetta 編譯，主要用於 Intel Mac（2020 年及更早的舊款 Mac） |
 | macOS | ARM64 | `aarch64-apple-darwin` | 在 Apple Silicon runner 上原生編譯，主要用於 M 系列 Mac（2020 年底至今的所有新款 Mac） |
 | Android | ARM64 | `aarch64-linux-android` | 在 Ubuntu runner 上用 NDK（API 24）交叉編譯，主要用於 Termux（ARM 手機） |
 | Android | x86_64 | `x86_64-linux-android` | 在 Ubuntu runner 上用 NDK（API 24）交叉編譯，主要用於模擬器 / Chromebook |
+
+> **說明：** Linux 目標（x64 和 ARM64）除了生成獨立二進位檔外，還會額外生成 `.deb` 和 `.rpm` 套件。
 
 ## 📦 流程階段 (Rust)
 
@@ -111,10 +113,14 @@ check ──→ build ──→ release ──→ publish
   │         │         │           ├─ AUR: 從 Release 下載 Linux 二進位檔
   │         │         │           │  生成 PKGBUILD & .SRCINFO → 推送至 AUR
   │         │         │           │
-  │         │         │           └─ npm: 從 Release 下載 6 個平台二進位檔
-  │         │         │              發佈平台套件 (os/cpu 限定)
-  │         │         │              發佈主套件 (@vincentzyuapps/winload)
-  │         │         │              同步至 GitHub Packages (npm.pkg.github.com)
+  │         │         │           ├─ npm: 從 Release 下載 6 個平台二進位檔
+  │         │         │           │  發佈平台套件 (os/cpu 限定)
+  │         │         │           │  發佈主套件 (@vincentzyuapps/winload)
+  │         │         │           │  同步至 GitHub Packages (npm.pkg.github.com)
+  │         │         │           │
+  │         │         │           └─ Gitee: 從 GitHub Release 下載附件
+  │         │         │              透過 Gitee API 建立 Release
+  │         │         │              上傳附件至 Gitee
   │         │         │
   │         │         └─ 下載建置產物
   │         │            刪除舊的 release/tag
@@ -124,7 +130,10 @@ check ──→ build ──→ release ──→ publish
   │         └─ 編譯 8 個平台目標
   │            上傳建置產物
   │
-  ├─→ benchmark (獨立運行)
+  ├─→ sync-gitee-code（與 check 並行，每次 push 觸發）
+  │    透過 hub-mirror-action 鏡像所有分支/標籤至 Gitee
+  │
+  ├─→ benchmark（獨立運行，'run benchmark' 觸發）
   │    運行 benchmark_go/benchmark.sh
   │    提交並推送 docs/benchmark/benchmark.svg
   │
@@ -135,11 +144,17 @@ check ──→ build ──→ release ──→ publish
        uv build → uv publish
 ```
 
+> **說明：** Release Notes 自動生成，包含下載表格（所有平台）、快速安裝指令（pip/npm/cargo/scoop/AUR）以及來自 git commits 的變更日誌。
+
 ```mermaid
 flowchart TB
     subgraph check["check"]
         C1[解析 commit 資訊]
         C2[從 Cargo.toml 擷取版本號]
+    end
+    
+    subgraph syncCode["sync-gitee-code"]
+        SC1[鏡像至 Gitee]
     end
     
     subgraph build["build"]
@@ -173,6 +188,12 @@ flowchart TB
         N4[同步至 GitHub Packages]
     end
     
+    subgraph syncRelease["sync-gitee-release"]
+        SR1[下載 GitHub Release]
+        SR2[建立 Gitee Release]
+        SR3[上傳附件]
+    end
+    
     subgraph benchmark["benchmark"]
         BM1[運行 benchmark.sh]
         BM2[提交並推送 SVG]
@@ -188,6 +209,7 @@ flowchart TB
     end
 
     C1 --> C2
+    C1 -."每次 push".-> SC1
     C2 --> B1
     C2 --"run benchmark"--> BM1
     C2 --> PY1
@@ -203,6 +225,8 @@ flowchart TB
     A1 --> A2 --> A3
     R4 --> N1
     N1 --> N2 --> N3 --> N4
+    R4 --> SR1
+    SR1 --> SR2 --> SR3
 ```
 
 ## 🍺 Scoop 發佈 (Rust)
@@ -273,7 +297,33 @@ flowchart TB
 
 > **注意：** 此任務在建置成功後與 Scoop/AUR/npm 並行運行，確保編譯產物準備好後再發佈。
 
-## 📌 版本號
+## 🔄 Gitee 同步
+
+自動將程式碼和 Release 鏡像至 [Gitee](https://gitee.com/vincent-zyu/winload)（中國大陸 GitHub 替代）。
+
+### sync-gitee-code — 程式碼鏡像
+
+**每次 push 時運行**（與 `check` job 並行）：
+- 使用 [Yikun/hub-mirror-action](https://github.com/Yikun/hub-mirror-action) 鏡像所有分支、標籤和提交
+- 自動觸發，無需關鍵字
+
+### sync-gitee-release — Release 鏡像
+
+**在 `release` job 成功後運行**（與 Scoop/AUR/npm 並行）：
+1. 下載 GitHub Release 的所有附件
+2. 透過 API 在 Gitee 上建立對應的 Release
+3. 上傳所有二進位附件至 Gitee Release
+
+### 前置條件
+
+| 金鑰 | 取得方式 | 用途 |
+|------|----------|------|
+| `GITEE_PRIVATE_KEY` | SSH 金鑰對（參見 [設定指南](../../docs/dev/commit和release从github同步到gitee捏.md)） | 透過 hub-mirror-action 推送程式碼 |
+| `GITEE_TOKEN` | [Gitee 個人存取權杖](https://gitee.com/profile/personal_access_tokens) | 透過 API 建立 Release 和上傳附件 |
+
+> **注意：** 詳細設定步驟請參見 [commit和release从github同步到gitee捏.md](../../docs/dev/commit和release从github同步到gitee捏.md)。
+
+## �📌 版本號
 
 版本號自動從 `rust/Cargo.toml` (Rust) 或 `py/pyproject.toml` (Python) 中擷取，用於：
 - Release 標籤名（如 `v0.1.5`）
@@ -291,3 +341,5 @@ flowchart TB
 | `NPM_TOKEN` | npm Automation Token | 發佈至 npm |
 | `PYPI_TOKEN` | PyPI API Token（Scope: "Entire account"） | 推送至 PyPI |
 | `CARGO_REGISTRY_TOKEN` | crates.io API Token | 發佈至 crates.io |
+| `GITEE_PRIVATE_KEY` | Gitee SSH 私密金鑰 | 鏡像程式碼至 Gitee |
+| `GITEE_TOKEN` | Gitee 個人存取權杖 | 建立 Gitee releases |

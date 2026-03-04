@@ -97,6 +97,24 @@ jobs:
           
           echo "📋 Flags: build=$BUILD release=$RELEASE publish=$PUBLISH publish_pypi=$PUBLISH_PYPI publish_crates=$PUBLISH_CRATES benchmark=$BENCHMARK"
 
+  # ── 同步代码到 Gitee ─────────────────────────────────────
+  # 每次 push 都同步，与 check 并行运行
+  sync-gitee-code:
+    name: Sync Code to Gitee
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Mirror to Gitee
+        uses: Yikun/hub-mirror-action@v1.5
+        with:
+          src: github/VincentZyuApps
+          dst: gitee/vincent-zyu
+          dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+          dst_token: ${{ secrets.GITEE_TOKEN }}
+          static_list: "winload"
+          force_update: true
+          debug: true
+
   # ── Benchmark ───────────────────────────────────────────
   benchmark:
     name: Run Benchmark
@@ -935,3 +953,132 @@ jobs:
           cd rust
           cargo publish --allow-dirty --token "$CARGO_REGISTRY_TOKEN"
           echo "✅ Published to crates.io!"
+
+  # ── 同步 Release 到 Gitee ─────────────────────────────────
+  # 在 release 完成后运行，与 publish-scoop/aur/npm 并行
+  sync-gitee-release:
+    name: Sync Release to Gitee
+    needs: [check, release]
+    if: needs.check.outputs.should_release == 'true' && needs.release.result == 'success'
+    runs-on: ubuntu-latest
+    env:
+      GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+      GITEE_OWNER: vincent-zyu
+      GITEE_REPO: winload
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get release info from GitHub
+        id: release_info
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ needs.check.outputs.version }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          
+          # 获取 Release 信息
+          RELEASE_INFO=$(gh release view "$TAG" --json name,body,assets)
+          echo "release_name=$(echo "$RELEASE_INFO" | jq -r '.name')" >> "$GITHUB_OUTPUT"
+          echo "$RELEASE_INFO" | jq -r '.body' > release_body.md
+          echo "$RELEASE_INFO" | jq -r '.assets[].url' > asset_urls.txt
+          
+          echo "📦 Release: $TAG"
+          echo "📝 Assets:"
+          cat asset_urls.txt
+
+      - name: Download GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.release_info.outputs.tag }}"
+          mkdir -p assets
+          cd assets
+          gh release download "$TAG" --pattern "*"
+          echo "📥 Downloaded files:"
+          ls -la
+
+      - name: Check if Gitee release exists
+        id: check_gitee
+        run: |
+          TAG="${{ steps.release_info.outputs.tag }}"
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/tags/${TAG}")
+          
+          if [ "$RESPONSE" = "200" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            # 获取现有 release 的 ID
+            RELEASE_ID=$(curl -s \
+              "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/tags/${TAG}" \
+              | jq -r '.id')
+            echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+            echo "⚠️ Gitee release already exists (ID: $RELEASE_ID)"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "✅ Gitee release does not exist, will create"
+          fi
+
+      - name: Create Gitee Release
+        if: steps.check_gitee.outputs.exists == 'false'
+        id: create_release
+        run: |
+          TAG="${{ steps.release_info.outputs.tag }}"
+          NAME="${{ steps.release_info.outputs.release_name }}"
+          BODY=$(cat release_body.md)
+          
+          # 创建 Release (Gitee API)
+          RESPONSE=$(curl -s -X POST \
+            "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg token "$GITEE_TOKEN" \
+              --arg tag "$TAG" \
+              --arg name "$NAME" \
+              --arg body "$BODY" \
+              '{
+                access_token: $token,
+                tag_name: $tag,
+                name: $name,
+                body: $body,
+                prerelease: false
+              }')")
+          
+          RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id')
+          if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
+            echo "❌ Failed to create Gitee release"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+          
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "✅ Created Gitee release (ID: $RELEASE_ID)"
+
+      - name: Upload assets to Gitee
+        run: |
+          if [ "${{ steps.check_gitee.outputs.exists }}" = "true" ]; then
+            RELEASE_ID="${{ steps.check_gitee.outputs.release_id }}"
+          else
+            RELEASE_ID="${{ steps.create_release.outputs.release_id }}"
+          fi
+          
+          echo "📤 Uploading assets to Gitee release (ID: $RELEASE_ID)"
+          
+          for FILE in assets/*; do
+            if [ -f "$FILE" ]; then
+              FILENAME=$(basename "$FILE")
+              echo "  Uploading: $FILENAME"
+              
+              RESPONSE=$(curl -s -X POST \
+                "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/${RELEASE_ID}/attach_files" \
+                -F "access_token=${GITEE_TOKEN}" \
+                -F "file=@${FILE}")
+              
+              if echo "$RESPONSE" | jq -e '.browser_download_url' > /dev/null 2>&1; then
+                echo "    ✅ Uploaded: $(echo "$RESPONSE" | jq -r '.browser_download_url')"
+              else
+                echo "    ⚠️ Upload may have failed: $RESPONSE"
+              fi
+            fi
+          done
+          
+          echo "✅ Asset upload complete!"

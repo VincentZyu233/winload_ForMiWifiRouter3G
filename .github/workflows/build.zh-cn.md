@@ -100,6 +100,8 @@ git commit -m "feat: add dark mode support"
 | Android | ARM64 | `aarch64-linux-android` | 在 Ubuntu runner 上用 NDK（API 24）交叉编译，主要用于 Termux（ARM 手机） |
 | Android | x86_64 | `x86_64-linux-android` | 在 Ubuntu runner 上用 NDK（API 24）交叉编译，主要用于模拟器 / Chromebook |
 
+> **说明：** Linux 目标（x64 和 ARM64）除了生成独立二进制文件外，还会额外生成 `.deb` 和 `.rpm` 包。
+
 ## 📦 流水线阶段 (Rust)
 
 ```
@@ -111,22 +113,29 @@ check ──→ build ──→ release ──→ publish
   │         │         │           ├─ AUR: 从 Release 下载 Linux 二进制
   │         │         │           │  生成 PKGBUILD & .SRCINFO → 推送到 AUR
   │         │         │           │
-  │         │         │           └─ npm: 从 Release 下载 6 个平台二进制
-  │         │         │              发布平台包 (os/cpu 限定)
-  │         │         │              发布主包 (@vincentzyuapps/winload)
-  │         │         │              同步到 GitHub Packages (npm.pkg.github.com)
+  │         │         │           ├─ npm: 从 Release 下载 6 个平台二进制
+  │         │         │           │  发布平台包 (os/cpu 限定)
+  │         │         │           │  发布主包 (@vincentzyuapps/winload)
+  │         │         │           │  同步到 GitHub Packages (npm.pkg.github.com)
+  │         │         │           │
+  │         │         │           └─ Gitee: 从 GitHub Release 下载附件
+  │         │         │              通过 Gitee API 创建 Release
+  │         │         │              上传附件到 Gitee
   │         │         │
   │         │         └─ 下载构建产物
   │         │            删除旧的 release/tag
   │         │            生成 release notes
   │         │            创建 GitHub Release
   │         │
-  │   benchmark (独立运行)
+  │         └─ 编译 8 个平台目标
+  │            上传构建产物
+  │
+  ├─→ sync-gitee-code（与 check 并行，每次 push 触发）
+  │    通过 hub-mirror-action 镜像所有分支/标签到 Gitee
+  │
+  ├─→ benchmark（独立运行，'run benchmark' 触发）
   │    运行 benchmark_go/benchmark.sh
   │    提交并推送 docs/benchmark/benchmark.svg
-  │
-  ├─→       └─ 编译 8 个平台目标
-  │            上传构建产物
   │
   ├─→ publish-crates-io（构建成功后并行，与 Scoop/AUR/npm 同时）
   │    cargo publish --allow-dirty
@@ -135,11 +144,17 @@ check ──→ build ──→ release ──→ publish
        uv build → uv publish
 ```
 
+> **说明：** Release Notes 自动生成，包含下载表格（所有平台）、快速安装命令（pip/npm/cargo/scoop/AUR）以及来自 git commits 的变更日志。
+
 ```mermaid
 flowchart TB
     subgraph check["check"]
         C1[解析 commit 信息]
         C2[从 Cargo.toml 提取版本号]
+    end
+    
+    subgraph syncCode["sync-gitee-code"]
+        SC1[镜像到 Gitee]
     end
     
     subgraph build["build"]
@@ -173,6 +188,12 @@ flowchart TB
         N4[同步到 GitHub Packages]
     end
     
+    subgraph syncRelease["sync-gitee-release"]
+        SR1[下载 GitHub Release]
+        SR2[创建 Gitee Release]
+        SR3[上传附件]
+    end
+    
     subgraph benchmark["benchmark"]
         BM1[运行 benchmark.sh]
         BM2[提交并推送 SVG]
@@ -188,6 +209,7 @@ flowchart TB
     end
 
     C1 --> C2
+    C1 -."每次 push".-> SC1
     C2 --> B1
     C2 --"run benchmark"--> BM1
     C2 --> PY1
@@ -203,6 +225,8 @@ flowchart TB
     A1 --> A2 --> A3
     R4 --> N1
     N1 --> N2 --> N3 --> N4
+    R4 --> SR1
+    SR1 --> SR2 --> SR3
 ```
 
 ## 🍺 Scoop 发布 (Rust)
@@ -273,7 +297,33 @@ flowchart TB
 
 > **注意：** 此任务在构建成功后与 Scoop/AUR/npm 并行运行，确保编译产物准备好后再发布。
 
-## 📌 版本号
+## 🔄 Gitee 同步
+
+自动将代码和 Release 镜像到 [Gitee](https://gitee.com/vincent-zyu/winload)（国内 GitHub 替代）。
+
+### sync-gitee-code — 代码镜像
+
+**每次 push 时运行**（与 `check` job 并行）：
+- 使用 [Yikun/hub-mirror-action](https://github.com/Yikun/hub-mirror-action) 镜像所有分支、标签和提交
+- 自动触发，无需关键词
+
+### sync-gitee-release — Release 镜像
+
+**在 `release` job 成功后运行**（与 Scoop/AUR/npm 并行）：
+1. 下载 GitHub Release 的所有附件
+2. 通过 API 在 Gitee 上创建对应的 Release
+3. 上传所有二进制附件到 Gitee Release
+
+### 前置条件
+
+| 密钥 | 获取方式 | 用途 |
+|------|----------|------|
+| `GITEE_PRIVATE_KEY` | SSH 密钥对（参见 [配置指南](../../docs/dev/commit和release从github同步到gitee捏.md)） | 通过 hub-mirror-action 推送代码 |
+| `GITEE_TOKEN` | [Gitee 个人访问令牌](https://gitee.com/profile/personal_access_tokens) | 通过 API 创建 Release 和上传附件 |
+
+> **注意：** 详细配置步骤请参见 [commit和release从github同步到gitee捏.md](../../docs/dev/commit和release从github同步到gitee捏.md)。
+
+## �📌 版本号
 
 版本号自动从 `rust/Cargo.toml` (Rust) 或 `py/pyproject.toml` (Python) 中提取，用于：
 - Release 标签名（如 `v0.1.5`）
@@ -291,3 +341,5 @@ flowchart TB
 | `NPM_TOKEN` | npm Automation Token | 发布到 npm |
 | `PYPI_TOKEN` | PyPI API Token（Scope: "Entire account"） | 推送到 PyPI |
 | `CARGO_REGISTRY_TOKEN` | crates.io API Token | 发布到 crates.io |
+| `GITEE_PRIVATE_KEY` | Gitee SSH 私钥 | 镜像代码到 Gitee |
+| `GITEE_TOKEN` | Gitee 个人访问令牌 | 创建 Gitee releases |

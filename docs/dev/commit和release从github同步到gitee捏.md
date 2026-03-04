@@ -5,29 +5,33 @@
 > - GitHub：https://github.com/VincentZyuApps/winload
 > - Gitee：https://gitee.com/vincent-zyu/winload
 
+> [!NOTE]
+> 原来是单独的 `sync-to-gitee.yml` 工作流，现在已经合并到 `build.yml` 中捏 ✨
+
 ---
 
-## 🤔 这个 workflow 做了什么？
+## 🤔 这个功能做了什么？
 
-工作流文件：[`.github/workflows/sync-to-gitee.yml`](../../.github/workflows/sync-to-gitee.yml)
+同步逻辑已经集成在主工作流文件：[`.github/workflows/build.yml`](../../.github/workflows/build.yml)
 
 ### 触发时机
 
-| 事件 | 说明 |
-|------|------|
-| `push`（任意分支） | 每次 push 代码到 GitHub 时自动触发 |
-| `release: published` | 在 GitHub 上发布新 Release 时自动触发 |
-| `workflow_dispatch` | 手动触发（可勾选是否同步 Release） |
+| 事件 | 同步内容 | 说明 |
+|------|----------|------|
+| `push` 到 main | 代码 | 每次 push 代码时自动镜像到 Gitee |
+| `build publish` / `build release` | 代码 + Release | 构建完成后同时同步 Release |
 
-### Job 1：`sync-code` — 同步代码
+### Job：`sync-gitee-code` — 同步代码
+
+与 `check` job 并行运行，在每次 push 时触发。
 
 使用 [Yikun/hub-mirror-action](https://github.com/Yikun/hub-mirror-action) 这个开源 Action（696⭐，4000+ 用户在用），把 GitHub 上 winload 仓库的 **所有分支 + 所有 Tag + 所有 Commit** 镜像推送到 Gitee。
 
 原理很简单：在 GitHub Actions 的 ubuntu runner 里 `git clone` 下来，然后 `git push --force` 到 Gitee。
 
-### Job 2：`sync-release` — 同步 Release
+### Job：`sync-gitee-release` — 同步 Release
 
-等 `sync-code` 完成后才执行，仅在 Release 发布或手动触发时运行。做了这几件事：
+在 `release` job 完成后运行，与 `publish-scoop`、`publish-aur-bin`、`publish-npm` 等发布任务并行。做了这几件事：
 
 1. 从 GitHub API 获取 Release 信息（标题、Release Notes、附件下载地址）
 2. 下载所有 Release 附件（exe、deb、rpm 等二进制文件）
