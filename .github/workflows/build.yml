@@ -100,7 +100,7 @@ jobs:
   # ── 同步代码到 Gitee ─────────────────────────────────────
   # 每次 push 都同步，与 check 并行运行
   sync-gitee-code:
-    name: Sync Code to Gitee
+    name: 【Gitee】Sync Code
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
@@ -957,7 +957,7 @@ jobs:
   # ── 同步 Release 到 Gitee ─────────────────────────────────
   # 在 release 完成后运行，与 publish-scoop/aur/npm 并行
   sync-gitee-release:
-    name: Sync Release to Gitee
+    name: 【Gitee】Sync Release
     needs: [check, release]
     if: needs.check.outputs.should_release == 'true' && needs.release.result == 'success'
     runs-on: ubuntu-latest
@@ -998,87 +998,94 @@ jobs:
           echo "📥 Downloaded files:"
           ls -la
 
-      - name: Check if Gitee release exists
-        id: check_gitee
-        run: |
-          TAG="${{ steps.release_info.outputs.tag }}"
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/tags/${TAG}")
-          
-          if [ "$RESPONSE" = "200" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            # 获取现有 release 的 ID
-            RELEASE_ID=$(curl -s \
-              "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/tags/${TAG}" \
-              | jq -r '.id')
-            echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
-            echo "⚠️ Gitee release already exists (ID: $RELEASE_ID)"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "✅ Gitee release does not exist, will create"
-          fi
-
-      - name: Create Gitee Release
-        if: steps.check_gitee.outputs.exists == 'false'
-        id: create_release
+      - name: Create or find Gitee Release
+        id: gitee_release
         run: |
           TAG="${{ steps.release_info.outputs.tag }}"
           NAME="${{ steps.release_info.outputs.release_name }}"
-          BODY=$(cat release_body.md)
           
-          # 创建 Release (Gitee API)
-          RESPONSE=$(curl -s -X POST \
-            "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
+          # JSON 安全转义 release body（处理换行、引号、反斜杠等）
+          JSON_BODY=$(jq -R -s '.' < release_body.md)
+          
+          # 1. 确保 tag 存在于 Gitee
+          if curl -s --fail "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/tags/${TAG}?access_token=${GITEE_TOKEN}" > /dev/null 2>&1; then
+            echo "🏷️ Tag $TAG already exists on Gitee"
+          else
+            echo "🏷️ Creating tag $TAG on Gitee..."
+            curl -s -X POST --header 'Content-Type: application/json;charset=UTF-8' \
+              "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/tags" \
+              -d "{\"access_token\":\"${GITEE_TOKEN}\",\"tag_name\":\"${TAG}\",\"refs\":\"main\",\"tag_message\":\"Release ${TAG}\"}"
+          fi
+          
+          # 2. 检查是否已有对应 tag 的 Release
+          EXISTING=$(curl -s "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/tags/${TAG}?access_token=${GITEE_TOKEN}")
+          RELEASE_ID=$(echo "$EXISTING" | jq -r '.id')
+          
+          if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
+            ASSET_COUNT=$(echo "$EXISTING" | jq '.assets | length')
+            echo "⚠️ Gitee release already exists (ID: $RELEASE_ID, assets: $ASSET_COUNT)"
+          else
+            echo "✅ No existing release, creating..."
+            
+            # 3. 创建 Release（注意 target_commitish 是必填字段）
+            RELEASE_PAYLOAD=$(jq -n \
               --arg token "$GITEE_TOKEN" \
               --arg tag "$TAG" \
               --arg name "$NAME" \
-              --arg body "$BODY" \
+              --argjson body "$JSON_BODY" \
               '{
                 access_token: $token,
                 tag_name: $tag,
                 name: $name,
                 body: $body,
+                target_commitish: "main",
                 prerelease: false
-              }')")
-          
-          RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id')
-          if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
-            echo "❌ Failed to create Gitee release"
-            echo "Response: $RESPONSE"
-            exit 1
+              }')
+            
+            CREATE_RESPONSE=$(curl -s -X POST --header 'Content-Type: application/json;charset=UTF-8' \
+              "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
+              -d "$RELEASE_PAYLOAD")
+            
+            RELEASE_ID=$(echo "$CREATE_RESPONSE" | jq -r '.id')
+            ASSET_COUNT=0
+            
+            if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
+              echo "❌ Failed to create Gitee release"
+              echo "Response: $CREATE_RESPONSE"
+              exit 1
+            fi
+            echo "✅ Created Gitee release (ID: $RELEASE_ID)"
           fi
           
           echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
-          echo "✅ Created Gitee release (ID: $RELEASE_ID)"
+          echo "asset_count=$ASSET_COUNT" >> "$GITHUB_OUTPUT"
 
       - name: Upload assets to Gitee
+        if: steps.gitee_release.outputs.release_id != '' && steps.gitee_release.outputs.release_id != 'null'
         run: |
-          if [ "${{ steps.check_gitee.outputs.exists }}" = "true" ]; then
-            RELEASE_ID="${{ steps.check_gitee.outputs.release_id }}"
-          else
-            RELEASE_ID="${{ steps.create_release.outputs.release_id }}"
-          fi
-          
+          RELEASE_ID="${{ steps.gitee_release.outputs.release_id }}"
           echo "📤 Uploading assets to Gitee release (ID: $RELEASE_ID)"
           
+          SUCCESS=0
+          FAIL=0
           for FILE in assets/*; do
             if [ -f "$FILE" ]; then
               FILENAME=$(basename "$FILE")
               echo "  Uploading: $FILENAME"
               
-              RESPONSE=$(curl -s -X POST \
-                "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/${RELEASE_ID}/attach_files" \
+              RESPONSE=$(curl -s -X POST --header "Content-Type: multipart/form-data" \
                 -F "access_token=${GITEE_TOKEN}" \
-                -F "file=@${FILE}")
+                -F "file=@${FILE}" \
+                "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/${RELEASE_ID}/attach_files")
               
               if echo "$RESPONSE" | jq -e '.browser_download_url' > /dev/null 2>&1; then
                 echo "    ✅ Uploaded: $(echo "$RESPONSE" | jq -r '.browser_download_url')"
+                SUCCESS=$((SUCCESS + 1))
               else
-                echo "    ⚠️ Upload may have failed: $RESPONSE"
+                echo "    ⚠️ Upload may have failed: $(echo "$RESPONSE" | head -c 200)"
+                FAIL=$((FAIL + 1))
               fi
             fi
           done
           
-          echo "✅ Asset upload complete!"
+          echo "📊 Upload complete: $SUCCESS succeeded, $FAIL failed"
