@@ -440,7 +440,7 @@ jobs:
             echo "**Windows (Scoop):**"
             echo '```powershell'
             echo "scoop bucket add vincentzyu https://github.com/VincentZyuApps/scoop-bucket"
-            echo "scoop install winload"
+            echo "scoop install winload@${PLAIN_VER}"
             echo '```'
             echo "> 📄 [Scoop bucket](https://github.com/VincentZyuApps/scoop-bucket)"
             echo ""
