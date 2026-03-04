@@ -29,8 +29,10 @@ jobs:
       
       - name: Parse commit message
         id: flags
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          MSG="${{ github.event.head_commit.message }}"
+          MSG="$COMMIT_MSG"
           
           # 从 Cargo.toml 提取版本号
           VERSION="v$(grep '^version' rust/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')"
