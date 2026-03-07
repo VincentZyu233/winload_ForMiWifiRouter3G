@@ -102,7 +102,7 @@ jobs:
   # ── 同步代码到 Gitee ─────────────────────────────────────
   # 每次 push 都同步，与 check 并行运行
   sync-gitee-code:
-    name: 【Gitee】Sync Code
+    name: 【Gitee码云】Sync Code Commit
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
@@ -424,10 +424,10 @@ jobs:
             echo ""
             echo "### ⬇️ Downloads"
             echo ""
-            echo "| Arch | Windows | Linux | macOS |"
-            echo "|------|---------|-------|-------|"
-            echo "| **x86_64** | [exe](${BASE_URL}/winload-windows-x86_64-${VERSION}.exe) | [binary](${BASE_URL}/winload-linux-x86_64-${VERSION}) · [deb](${BASE_URL}/winload-linux-x86_64-${VERSION}.deb) · [rpm](${BASE_URL}/winload-linux-x86_64-${VERSION}.rpm) | [binary](${BASE_URL}/winload-macos-x86_64-${VERSION}) |"
-            echo "| **ARM64** | [exe](${BASE_URL}/winload-windows-aarch64-${VERSION}.exe) | [binary](${BASE_URL}/winload-linux-aarch64-${VERSION}) · [deb](${BASE_URL}/winload-linux-aarch64-${VERSION}.deb) · [rpm](${BASE_URL}/winload-linux-aarch64-${VERSION}.rpm) | [binary](${BASE_URL}/winload-macos-aarch64-${VERSION}) |"
+            echo "| Arch | Windows | Linux | macOS | Android |"
+            echo "|------|---------|-------|-------|---------|"
+            echo "| **x86_64** | [exe](${BASE_URL}/winload-windows-x86_64-${VERSION}.exe) | [binary](${BASE_URL}/winload-linux-x86_64-${VERSION}) · [deb](${BASE_URL}/winload-linux-x86_64-${VERSION}.deb) · [rpm](${BASE_URL}/winload-linux-x86_64-${VERSION}.rpm) | [binary](${BASE_URL}/winload-macos-x86_64-${VERSION}) | [binary](${BASE_URL}/winload-android-x86_64-${VERSION}) |"
+            echo "| **ARM64** | [exe](${BASE_URL}/winload-windows-aarch64-${VERSION}.exe) | [binary](${BASE_URL}/winload-linux-aarch64-${VERSION}) · [deb](${BASE_URL}/winload-linux-aarch64-${VERSION}.deb) · [rpm](${BASE_URL}/winload-linux-aarch64-${VERSION}.rpm) | [binary](${BASE_URL}/winload-macos-aarch64-${VERSION}) | [binary](${BASE_URL}/winload-android-aarch64-${VERSION}) |"
             echo ""
 
             # 提取不带 v 前缀的版本号
@@ -481,12 +481,14 @@ jobs:
             echo "**🇨🇳 Gitee mirror (faster in China):**"
             echo '```bash'
             echo "curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh | bash"
+            echo "# or install this specific version:"
+            echo "WINLOAD_VERSION=${VERSION} bash -c \"\\\$(curl -fsSL https://gitee.com/vincent-zyu/winload/raw/main/docs/install_scripts/install_gitee.sh)\""
             echo '```'
             echo "> 📄 [View Gitee install script](https://gitee.com/vincent-zyu/winload/blob/main/docs/install_scripts/install_gitee.sh)"
             echo ""
-            echo "> ⚠️ These install scripts only support systems with **apt or dnf** on **x86_64 / aarch64**. For other platforms, use **npm** or **Cargo**."
+            echo "> ⚠️ These two `.sh` install scripts only support systems with **apt or dnf** on **x86_64 / aarch64**. For other platforms, use **npm** or **Cargo**."
             echo "> "
-            echo "> ⚠️ 以上安装脚本仅适用于使用 **apt 或 dnf** 的 **x86_64 / aarch64** 系统。其他平台请使用 **npm** 或 **Cargo** 安装。"
+            echo "> ⚠️ 以上两个`.sh`安装脚本仅适用于使用 **apt 或 dnf** 的 **x86_64 / aarch64** 系统。其他平台请使用 **npm** 或 **Cargo** 安装。"
             echo ""
             echo "---"
             echo ""
@@ -969,7 +971,7 @@ jobs:
   # ── 同步 Release 到 Gitee ─────────────────────────────────
   # 在 release 完成后运行，与 publish-scoop/aur/npm 并行
   sync-gitee-release:
-    name: 【Gitee】Sync Release
+    name: 【Gitee码云】Sync Release File
     needs: [check, release]
     if: needs.check.outputs.should_release == 'true' && needs.release.result == 'success'
     runs-on: ubuntu-latest
