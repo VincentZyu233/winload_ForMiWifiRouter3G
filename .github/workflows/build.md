@@ -10,15 +10,15 @@ The CI/CD pipeline is driven entirely by **commit message keywords**. Push to `m
 
 ## 🔑 Keywords
 
-| Keyword in commit message | Build (8 platforms) | Benchmark | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
+| Keyword in commit message | Build (8 platforms) | GitHub Release | Scoop / AUR / npm | PyPI | crates.io | Benchmark |
 |---------------------------|:---:|:---:|:---:|:---:|:---:|:---:|
 | `build action` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `build release` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `build publish` | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| `publish from release` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| `pypi publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| `crates publish` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| `run benchmark` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| `build release` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| `build publish` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `publish from release` | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `pypi publish` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `crates publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `run benchmark` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 
 > **Note:** `publish from release` fetches binaries from an existing Release without rebuilding. `build publish` does the full pipeline.

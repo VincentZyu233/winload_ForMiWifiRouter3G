@@ -10,15 +10,15 @@ CI/CD 流程完全由 **commit 資訊中的關鍵字** 驅動。推送至 `main`
 
 ## 🔑 關鍵字
 
-| Commit 資訊中的關鍵字 | 建置（8 平台） | 基準測試 (Benchmark) | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
+| Commit 資訊中的關鍵字 | 建置（8 平台） | GitHub Release | Scoop / AUR / npm | PyPI | crates.io | 基準測試 (Benchmark) |
 |----------------------|:---:|:---:|:---:|:---:|:---:|:---:|
 | `build action` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `build release` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `build publish` | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| `publish from release` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| `pypi publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| `crates publish` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| `run benchmark` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| `build release` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| `build publish` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `publish from release` | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `pypi publish` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `crates publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `run benchmark` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 
 > **說明:** `publish from release` 從現有的 Release 抓取二進位檔發布，不會重新建置。`build publish` 則是完整的流程。

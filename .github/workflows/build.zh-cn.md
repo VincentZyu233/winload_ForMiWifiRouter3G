@@ -10,15 +10,15 @@ CI/CD 流水线完全由 **commit 信息中的关键词** 驱动。推送到 `ma
 
 ## 🔑 关键词
 
-| Commit 信息中的关键词 | 构建（8 平台） | 基准测试 (Benchmark) | GitHub Release | Scoop / AUR / npm | PyPI | crates.io |
+| Commit 信息中的关键词 | 构建（8 平台） | GitHub Release | Scoop / AUR / npm | PyPI | crates.io | 基准测试 (Benchmark) |
 |----------------------|:---:|:---:|:---:|:---:|:---:|:---:|
 | `build action` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `build release` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `build publish` | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| `publish from release` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| `pypi publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| `crates publish` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| `run benchmark` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| `build release` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| `build publish` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `publish from release` | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `pypi publish` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `crates publish` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `run benchmark` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 
 > **说明:** `publish from release` 从已有的 Release 拉取二进制发布，不会重新构建。`build publish` 则是完整流水线。

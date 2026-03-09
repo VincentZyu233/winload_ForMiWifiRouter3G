@@ -147,7 +147,7 @@ struct Args {
     npcap: bool,
 
     /// Smart adaptive Y-axis max with exponential decay (half-life in seconds)
-    #[arg(long = "smart-max", default_missing_value = "5", num_args = 0..=1, value_name = "SECS")]
+    #[arg(long = "smart-max", default_missing_value = "10", num_args = 0..=1, value_name = "SECS")]
     smart_max: Option<f64>,
 
     /// Display language
