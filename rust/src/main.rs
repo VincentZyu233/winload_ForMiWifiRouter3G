@@ -127,7 +127,7 @@ struct Args {
     out_color: Option<ratatui::style::Color>,
 
     /// Fixed graph Y-axis max (e.g. 100M, 1G, 500K)
-    #[arg(short = 'm', long = "max", value_parser = parse_max_value)]
+    #[arg(short = 'm', long = "max", value_parser = parse_max_value, conflicts_with = "smart_max")]
     max: Option<f64>,
 
     /// Hide traffic graphs, show only statistics

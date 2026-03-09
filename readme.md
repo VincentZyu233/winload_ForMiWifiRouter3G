@@ -170,15 +170,25 @@ winload --npcap      # Capture 127.0.0.1 loopback traffic (Windows, requires Npc
 | `-b`, `--bar-style <STYLE>` | Bar style: `fill`, `color`, or `plain` | `fill` |
 | `--in-color <HEX>` | Incoming graph color, hex RGB (e.g. `0x00d7ff`) | cyan |
 | `--out-color <HEX>` | Outgoing graph color, hex RGB (e.g. `0xffaf00`) | gold |
-| `-m`, `--max <VALUE>` | Fixed Y-axis max (e.g. `10M`, `1G`, `500K`) | auto |
+| `-m`, `--max <VALUE>` | Fixed Y-axis max (e.g. `10M`, `1G`, `500K`) — *conflicts with `--smart-max`* | auto |
+| `--smart-max [SECS]` | Smart adaptive Y-axis: auto-decays after traffic spikes (default half-life: 10s) — *conflicts with `--max`* | off |
 | `-n`, `--no-graph` | Hide graph, show stats only | off |
 | `--hide-separator` | Hide the separator line (row of equals signs) | off |
 | `--no-color` | Disable all TUI colors (monochrome mode) | off |
-| `--smart-max [SECS]` | Smart adaptive Y-axis: auto-decays after traffic spikes (default half-life: 10s) | off |
 | `--npcap` | **[Windows Rust Only]** Capture loopback traffic via Npcap (recommended) | off |
 | `--debug-info` | Print network interface debug info and exit | — |
 | `-h`, `--help` | Print help (`--help --emoji` for emoji version!) | — |
 | `-V`, `--version` | Print version | — |
+
+> **Y-axis scaling modes** — there are three mutually exclusive scenarios:
+>
+> | Mode | Flag | Behavior |
+> |------|------|----------|
+> | **Fixed max** | `--max <VALUE>` | Y-axis is locked to the specified value (e.g. `10M`, `1G`). |
+> | **Smart max** | `--smart-max [SECS]` | Y-axis adapts automatically: jumps up on traffic spikes, then smoothly decays back down (exponential decay, default half-life 10 s). |
+> | **History peak** | *(neither flag)* | Y-axis follows the historical maximum of each metric — the default behavior. |
+>
+> ⚠️ `--max` and `--smart-max` **conflict with each other** — you can only use one at a time.
 
 ### Keyboard Shortcuts
 

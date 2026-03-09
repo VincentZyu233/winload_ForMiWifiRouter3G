@@ -203,13 +203,23 @@ def parse_args() -> argparse.Namespace:
         default="bit",
         help=t("help_unit"),
     )
-    parser.add_argument(
+    max_group = parser.add_mutually_exclusive_group()
+    max_group.add_argument(
         "-m",
         "--max",
         type=str,
         default=None,
         metavar="VALUE",
         help=t("help_max"),
+    )
+    max_group.add_argument(
+        "--smart-max",
+        type=float,
+        nargs="?",
+        const=10.0,
+        default=None,
+        metavar="SECS",
+        help=t("help_smart_max"),
     )
     parser.add_argument(
         "-n",
@@ -265,15 +275,6 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         default=False,
         help=t("help_no_color"),
-    )
-    parser.add_argument(
-        "--smart-max",
-        type=float,
-        nargs="?",
-        const=10.0,
-        default=None,
-        metavar="SECS",
-        help=t("help_smart_max"),
     )
     parser.add_argument(
         "--debug-info",
