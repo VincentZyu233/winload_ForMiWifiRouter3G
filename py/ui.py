@@ -16,10 +16,11 @@ from graph import render_graph, next_power_of_2_scaled, get_graph_scale_label_un
 class DeviceView:
     """单个网卡设备的视图，包含 Incoming 和 Outgoing 两个面板"""
 
-    def __init__(self, name: str, info: Optional[DeviceInfo] = None):
+    def __init__(self, name: str, info: Optional[DeviceInfo] = None,
+                 smart_max_half_life: Optional[float] = None):
         self.name = name
         self.info = info
-        self.engine = StatisticsEngine()
+        self.engine = StatisticsEngine(smart_max_half_life=smart_max_half_life)
 
     def get_addr_str(self) -> str:
         if self.info and self.info.addrs:
@@ -47,7 +48,8 @@ class UI:
                  fixed_max: Optional[float] = None, no_graph: bool = False,
                  unicode: bool = False, bar_style: str = "fill",
                  in_color: Optional[tuple] = None, out_color: Optional[tuple] = None,
-                 hide_separator: bool = False, no_color: bool = False):
+                 hide_separator: bool = False, no_color: bool = False,
+                 smart_max_half_life: Optional[float] = None):
         self.stdscr = stdscr
         self.collector = collector
         self.current_device_idx = 0
@@ -62,6 +64,7 @@ class UI:
         self.out_color_rgb = out_color
         self.hide_separator = hide_separator
         self.no_color = no_color
+        self.smart_max_half_life = smart_max_half_life
 
         # 初始化颜色
         curses.start_color()
@@ -120,10 +123,12 @@ class UI:
         self.views.clear()
         for name in self.collector.device_names:
             info = self.collector.get_device_info(name)
-            self.views.append(DeviceView(name, info))
+            self.views.append(DeviceView(name, info,
+                                         smart_max_half_life=self.smart_max_half_life))
         if not self.views:
             # fallback: 如果没有设备（不太可能），至少显示一个占位
-            self.views.append(DeviceView("(no device)"))
+            self.views.append(DeviceView("(no device)",
+                                         smart_max_half_life=self.smart_max_half_life))
 
     @property
     def current_view(self) -> DeviceView:
@@ -210,6 +215,7 @@ class UI:
 
         # ── Incoming 面板 ──
         in_label = t("incoming_emoji") if self.emoji else t("incoming")
+        smart_in = view.engine.incoming_smooth_peak if self.smart_max_half_life is not None else None
         self._draw_panel(
             start_row=row,
             max_x=max_x,
@@ -218,11 +224,13 @@ class UI:
             stats=view.engine.incoming,
             history=view.engine.incoming_history,
             is_incoming=True,
+            smart_max_peak=smart_in,
         )
         row += panel_height
 
         # ── Outgoing 面板 ──
         out_label = t("outgoing_emoji") if self.emoji else t("outgoing")
+        smart_out = view.engine.outgoing_smooth_peak if self.smart_max_half_life is not None else None
         self._draw_panel(
             start_row=row,
             max_x=max_x,
@@ -231,6 +239,7 @@ class UI:
             stats=view.engine.outgoing,
             history=view.engine.outgoing_history,
             is_incoming=False,
+            smart_max_peak=smart_out,
         )
         row += panel_height
 
@@ -259,6 +268,7 @@ class UI:
         stats: TrafficStats,
         history,
         is_incoming: bool = True,
+        smart_max_peak: Optional[float] = None,
     ) -> None:
         """绘制一个流量面板（图形 + 统计）"""
         # 选择颜色
@@ -269,9 +279,11 @@ class UI:
         stat_lines = self._format_stats(stats)
         stat_width = max(len(s) for s in stat_lines) + 2 if stat_lines else 20
 
-        # 确定缩放上限
+        # 确定缩放上限 (优先级: fixed_max > smart_max > history peak)
         if self.fixed_max is not None:
             scale_max = self.fixed_max
+        elif smart_max_peak is not None:
+            scale_max = next_power_of_2_scaled(smart_max_peak)
         else:
             peak = max(history) if history else 0.0
             scale_max = next_power_of_2_scaled(peak)

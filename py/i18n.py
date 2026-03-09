@@ -38,6 +38,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "help_hide_separator": "Hide separator line (the row of equals signs between header and panels)",
         "help_version": "Print version",
         "help_no_color": "Disable all TUI colors (monochrome mode), press 'c' to toggle at runtime",
+        "help_smart_max": (
+            "Smart adaptive Y-axis: auto-decays after traffic spikes\n\n"
+            "[default half-life: 10s]"
+        ),
+        "help_debug_info": "Print debug info about network interfaces and exit",
         "help_lang": "Display language: en-us (default), zh-cn, zh-tw",
         # ── TUI strings ──
         "device": "Device",
@@ -96,6 +101,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "help_hide_separator": "隐藏分隔线（标题和面板之间的等号行）",
         "help_version": "打印版本号",
         "help_no_color": "禁用所有 TUI 颜色（单色模式），运行时按 c 可切换",
+        "help_smart_max": (
+            "智能自适应 Y 轴上限：流量尖峰后自动指数回落\n\n"
+            "[默认半衰期: 10秒]"
+        ),
+        "help_debug_info": "打印网卡调试信息并退出",
         "help_lang": "显示语言：en-us（默认），zh-cn，zh-tw",
         # ── TUI strings ──
         "device": "设备",
@@ -154,6 +164,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "help_hide_separator": "隱藏分隔線（標題和面板之間的等號行）",
         "help_version": "列印版本號",
         "help_no_color": "停用所有 TUI 顏色（單色模式），執行時按 c 可切換",
+        "help_smart_max": (
+            "智慧自適應 Y 軸上限：流量尖峰後自動指數回落\n\n"
+            "[預設半衰期: 10秒]"
+        ),
+        "help_debug_info": "列印網路卡除錯資訊並退出",
         "help_lang": "顯示語言：en-us（預設），zh-cn，zh-tw",
         # ── TUI strings ──
         "device": "裝置",

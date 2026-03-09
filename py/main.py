@@ -28,7 +28,19 @@ def get_version() -> str:
     try:
         return get_pkg_version("winload")
     except Exception:
-        return "unknown"
+        pass
+    # Fallback: read version from pyproject.toml (for source runs)
+    try:
+        import re
+        from pathlib import Path
+        toml_path = Path(__file__).resolve().parent / "pyproject.toml"
+        text = toml_path.read_text(encoding="utf-8")
+        m = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return "unknown"
 
 
 def get_system_info() -> str:
@@ -39,6 +51,69 @@ def get_system_info() -> str:
 def print_system_info() -> None:
     """Print system information to stderr"""
     print(f"\n{get_system_info()}", file=sys.stderr)
+
+
+def print_debug_info(emoji: bool = False) -> None:
+    """Print network interface debug info and exit"""
+    import psutil
+
+    if emoji:
+        print("\n\U0001f50d\U0001f310 Network Interfaces Debug Info \U0001f5a7\u2728")
+
+    print("\n=== Network Interfaces Debug Info ===")
+
+    addrs = psutil.net_if_addrs()
+    stats_map = psutil.net_if_stats()
+    counters = psutil.net_io_counters(pernic=True)
+
+    print(f"Total interfaces detected by psutil: {len(addrs)}\n")
+
+    for name in sorted(addrs.keys()):
+        print(f"Interface: {name}")
+
+        if name in stats_map:
+            s = stats_map[name]
+            status = "UP" if s.isup else "DOWN"
+            print(f"  Status: {status} | Speed: {s.speed} Mbps | MTU: {s.mtu}")
+
+        print("  Addresses:")
+        addr_list = addrs[name]
+        if not addr_list:
+            print("    (none)")
+        else:
+            for a in addr_list:
+                family = a.family.name if hasattr(a.family, 'name') else str(a.family)
+                print(f"    - [{family}] {a.address}")
+
+        if name in counters:
+            c = counters[name]
+            print(f"  Total received: {c.bytes_recv} bytes")
+            print(f"  Total transmitted: {c.bytes_sent} bytes")
+
+        print()
+
+    # Filtered devices (same logic as Collector)
+    filtered = []
+    for name in sorted(addrs.keys()):
+        if name in stats_map and not stats_map[name].isup:
+            continue
+        ipv4 = [a.address for a in addrs[name] if a.family.value == 2 and a.address]
+        if ipv4:
+            filtered.append((name, ipv4))
+
+    print(f"Filtered devices (IPv4, UP): {len(filtered)}\n")
+    for name, ips in filtered:
+        print(f"  - {name} [{', '.join(ips)}]")
+
+    if sys.platform == "win32":
+        print("\nNote: Windows loopback (127.0.0.1) traffic is not visible via")
+        print("  standard network APIs. The Loopback device appears in the")
+        print("  list but may show zero traffic.")
+
+    print(f"\n{get_system_info()}")
+
+    if emoji:
+        print("\n\U0001f3c1 Done! Happy debugging! \U0001f389\U0001f41b")
 
 
 def parse_max_value(s: str) -> float:
@@ -192,6 +267,21 @@ def parse_args() -> argparse.Namespace:
         help=t("help_no_color"),
     )
     parser.add_argument(
+        "--smart-max",
+        type=float,
+        nargs="?",
+        const=10.0,
+        default=None,
+        metavar="SECS",
+        help=t("help_smart_max"),
+    )
+    parser.add_argument(
+        "--debug-info",
+        action="store_true",
+        default=False,
+        help=t("help_debug_info"),
+    )
+    parser.add_argument(
         "--lang",
         type=str,
         choices=["en-us", "zh-cn", "zh-tw"],
@@ -227,6 +317,7 @@ def main_loop(stdscr: "curses.window", args: argparse.Namespace) -> None:
         out_color=args.out_color,
         hide_separator=args.hide_separator,
         no_color=args.no_color,
+        smart_max_half_life=args.smart_max,
     )
 
     # 如果指定了默认设备，切换到对应索引
@@ -265,6 +356,11 @@ def main_loop(stdscr: "curses.window", args: argparse.Namespace) -> None:
 
 def main() -> None:
     args = parse_args()
+
+    # --debug-info: print and exit
+    if args.debug_info:
+        print_debug_info(emoji=args.emoji)
+        return
 
     # Windows 需要 windows-curses
     try:

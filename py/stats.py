@@ -30,6 +30,7 @@ class StatisticsEngine:
         self,
         refresh_interval_ms: int = 500,
         average_window_sec: int = 300,
+        smart_max_half_life: Optional[float] = None,
     ):
         self._refresh_ms = refresh_interval_ms
         self._avg_window_sec = average_window_sec
@@ -52,6 +53,14 @@ class StatisticsEngine:
         self._outgoing_history: deque[float] = deque(maxlen=1024)
 
         self._first_snapshot: Optional[Snapshot] = None
+
+        # Smart-max: 指数衰减平滑峰值
+        self.incoming_smooth_peak: float = 0.0
+        self.outgoing_smooth_peak: float = 0.0
+        if smart_max_half_life is not None and smart_max_half_life > 0:
+            self._decay_factor: float = 0.5 ** (refresh_interval_ms / 1000.0 / smart_max_half_life)
+        else:
+            self._decay_factor: float = 1.0
 
     @property
     def incoming_history(self) -> deque:
@@ -126,6 +135,16 @@ class StatisticsEngine:
         if self._first_snapshot:
             self.incoming.total = latest.bytes_recv
             self.outgoing.total = latest.bytes_sent
+
+        # --- Smart-max smooth peaks (指数衰减) ---
+        self.incoming_smooth_peak = max(
+            self.incoming.current,
+            self.incoming_smooth_peak * self._decay_factor,
+        )
+        self.outgoing_smooth_peak = max(
+            self.outgoing.current,
+            self.outgoing_smooth_peak * self._decay_factor,
+        )
 
 
 def format_speed(bytes_per_sec: float) -> str:
