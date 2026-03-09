@@ -177,6 +177,9 @@ pub struct App {
     pub no_graph: bool,
     pub hide_separator: bool,
     pub no_color: bool,
+    pub interval: u64,
+    pub average: u64,
+    pub show_debug: bool,
     pub smart_max_half_life: Option<f64>,
     pub loopback_mode: LoopbackMode,
     pub loopback_info: Option<String>,
@@ -228,6 +231,9 @@ impl App {
             no_graph: args.no_graph,
             hide_separator: args.hide_separator,
             no_color: args.no_color,
+            interval: args.interval,
+            average: args.average,
+            show_debug: false,
             smart_max_half_life: args.smart_max,
             loopback_mode,
             loopback_info: None,
@@ -332,6 +338,9 @@ fn run(terminal: &mut ratatui::DefaultTerminal, args: Args) -> io::Result<()> {
                         }
                         KeyCode::Char('c') => {
                             app.no_color = !app.no_color;
+                        }
+                        KeyCode::F(3) => {
+                            app.show_debug = !app.show_debug;
                         }
                         KeyCode::Right | KeyCode::Down | KeyCode::Tab | KeyCode::Enter => {
                             app.next_device();

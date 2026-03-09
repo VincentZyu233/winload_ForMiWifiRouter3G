@@ -49,7 +49,8 @@ class UI:
                  unicode: bool = False, bar_style: str = "fill",
                  in_color: Optional[tuple] = None, out_color: Optional[tuple] = None,
                  hide_separator: bool = False, no_color: bool = False,
-                 smart_max_half_life: Optional[float] = None):
+                 smart_max_half_life: Optional[float] = None,
+                 interval: int = 500, average: int = 300):
         self.stdscr = stdscr
         self.collector = collector
         self.current_device_idx = 0
@@ -65,6 +66,9 @@ class UI:
         self.hide_separator = hide_separator
         self.no_color = no_color
         self.smart_max_half_life = smart_max_half_life
+        self.interval = interval
+        self.average = average
+        self.show_debug = False
 
         # 初始化颜色
         curses.start_color()
@@ -165,6 +169,11 @@ class UI:
             self.stdscr.noutrefresh()
             return
 
+        # F3 Debug overlay (Minecraft-style)
+        if self.show_debug:
+            self._draw_debug_overlay(max_y, max_x)
+            return
+
         view = self.current_view
         device_idx = self.current_device_idx % len(self.views)
 
@@ -216,6 +225,7 @@ class UI:
         # ── Incoming 面板 ──
         in_label = t("incoming_emoji") if self.emoji else t("incoming")
         smart_in = view.engine.incoming_smooth_peak if self.smart_max_half_life is not None else None
+        smart_in_rising = view.engine.incoming_smooth_peak_rising if self.smart_max_half_life is not None else None
         self._draw_panel(
             start_row=row,
             max_x=max_x,
@@ -225,12 +235,14 @@ class UI:
             history=view.engine.incoming_history,
             is_incoming=True,
             smart_max_peak=smart_in,
+            smart_max_rising=smart_in_rising,
         )
         row += panel_height
 
         # ── Outgoing 面板 ──
         out_label = t("outgoing_emoji") if self.emoji else t("outgoing")
         smart_out = view.engine.outgoing_smooth_peak if self.smart_max_half_life is not None else None
+        smart_out_rising = view.engine.outgoing_smooth_peak_rising if self.smart_max_half_life is not None else None
         self._draw_panel(
             start_row=row,
             max_x=max_x,
@@ -240,6 +252,7 @@ class UI:
             history=view.engine.outgoing_history,
             is_incoming=False,
             smart_max_peak=smart_out,
+            smart_max_rising=smart_out_rising,
         )
         row += panel_height
 
@@ -269,6 +282,7 @@ class UI:
         history,
         is_incoming: bool = True,
         smart_max_peak: Optional[float] = None,
+        smart_max_rising: Optional[bool] = None,
     ) -> None:
         """绘制一个流量面板（图形 + 统计）"""
         # 选择颜色
@@ -290,7 +304,17 @@ class UI:
 
         # 标签行
         scale_label = get_graph_scale_label_unit(scale_max, self.unit)
-        label_text = f"{label} ({scale_label}):"
+        mode_tag = ""
+        if self.fixed_max is not None:
+            mode_tag = f" [fixed: {format_speed_unit(self.fixed_max, self.unit)}]"
+        elif self.smart_max_half_life is not None:
+            arrow = ""
+            if smart_max_rising is True:
+                arrow = " ↑"
+            elif smart_max_rising is False:
+                arrow = " ↓"
+            mode_tag = f" [smart-max {self.smart_max_half_life}s]{arrow}"
+        label_text = f"{label} ({scale_label}){mode_tag}:"
         label_attr = self._color(self._get_bar_attr(label_color, bold=True))
         if self.bar_style == "fill":
             label_text = label_text.ljust(max_x - 1)
@@ -458,6 +482,108 @@ class UI:
         except curses.error:
             pass
 
+    def _draw_debug_overlay(self, max_y: int, max_x: int) -> None:
+        """Draw F3 debug overlay (Minecraft-style runtime info)"""
+        import platform
+        from i18n import get_lang
+
+        title_attr = self._color(curses.color_pair(self.COLOR_SEPARATOR) | curses.A_BOLD)
+        section_attr = self._color(curses.color_pair(self.COLOR_HELP) | curses.A_BOLD)
+        label_attr = self._color(curses.color_pair(self.COLOR_STAT_LABEL) | curses.A_BOLD)
+        value_attr = self._color(curses.color_pair(self.COLOR_STAT_VALUE))
+
+        row = 0
+
+        def kv(r: int, key: str, val: str) -> int:
+            self._safe_addstr(r, 2, f"{key:<14}", label_attr)
+            self._safe_addstr(r, 16, str(val), value_attr)
+            return r + 1
+
+        def section(r: int, title: str) -> int:
+            self._safe_addstr(r, 0, title, section_attr)
+            return r + 1
+
+        on_off = lambda b: "on" if b else "off"
+
+        # Title
+        self._safe_addstr(row, 0, "\u2550\u2550\u2550 winload Debug Info (F3) \u2550\u2550\u2550", title_attr)
+        row += 2
+
+        # Version & System
+        try:
+            from importlib.metadata import version as _get_ver
+            ver = _get_ver("winload")
+        except Exception:
+            ver = "unknown"
+        row = kv(row, "Version:", f"{ver} (Python edition)")
+        row = kv(row, "System:", f"{platform.system()} | {platform.machine()}")
+        row = kv(row, "Language:", get_lang())
+        row += 1
+
+        # Parameters
+        row = section(row, "\u2550\u2550\u2550 Parameters \u2550\u2550\u2550")
+        row = kv(row, "Interval:", f"{self.interval} ms")
+        row = kv(row, "Average:", f"{self.average} s")
+        row = kv(row, "Unit:", self.unit)
+        row = kv(row, "Bar Style:", self.bar_style)
+        row = kv(row, "Emoji:", on_off(self.emoji))
+        row = kv(row, "Unicode:", on_off(self.unicode))
+        row = kv(row, "No Graph:", on_off(self.no_graph))
+        row = kv(row, "No Color:", on_off(self.no_color))
+        row = kv(row, "Hide Sep:", on_off(self.hide_separator))
+        row += 1
+
+        # Y-axis Scaling
+        row = section(row, "\u2550\u2550\u2550 Y-axis Scaling \u2550\u2550\u2550")
+        if self.fixed_max is not None:
+            mode_str = f"fixed-max ({format_speed_unit(self.fixed_max, self.unit)})"
+        elif self.smart_max_half_life is not None:
+            mode_str = f"smart-max (half-life: {self.smart_max_half_life}s)"
+        else:
+            mode_str = "auto (history peak)"
+        row = kv(row, "Mode:", mode_str)
+
+        view = self.current_view
+        if self.smart_max_half_life is not None:
+            row = kv(row, "In smooth:", format_speed_unit(
+                view.engine.incoming_smooth_peak, self.unit))
+            row = kv(row, "Out smooth:", format_speed_unit(
+                view.engine.outgoing_smooth_peak, self.unit))
+        row += 1
+
+        # Device
+        row = section(row, "\u2550\u2550\u2550 Device \u2550\u2550\u2550")
+        device_idx = self.current_device_idx % len(self.views)
+        addr = view.get_addr_str() or "(none)"
+        row = kv(row, "Name:", f"{view.name} ({device_idx + 1}/{len(self.views)})")
+        row = kv(row, "Address:", addr)
+        row = kv(row, "In Curr:", format_speed_unit(view.engine.incoming.current, self.unit))
+        row = kv(row, "Out Curr:", format_speed_unit(view.engine.outgoing.current, self.unit))
+        row = kv(row, "In Total:", format_bytes(view.engine.incoming.total))
+        row = kv(row, "Out Total:", format_bytes(view.engine.outgoing.total))
+        row = kv(row, "In Peak:", format_speed_unit(view.engine.incoming.maximum, self.unit))
+        row = kv(row, "Out Peak:", format_speed_unit(view.engine.outgoing.maximum, self.unit))
+        row += 1
+
+        # Colors
+        row = section(row, "\u2550\u2550\u2550 Colors \u2550\u2550\u2550")
+        def fmt_color(rgb_tuple, default_name):
+            if rgb_tuple:
+                r, g, b = rgb_tuple
+                return f"#{r:02x}{g:02x}{b:02x}"
+            return f"{default_name} (default)"
+        row = kv(row, "In Color:", fmt_color(self.in_color_rgb, "cyan"))
+        row = kv(row, "Out Color:", fmt_color(self.out_color_rgb, "gold"))
+
+        # Help bar (bottom)
+        help_text = t("f3_help_bar_emoji") if self.emoji else t("f3_help_bar")
+        help_attr = self._color(self._get_bar_attr(self.COLOR_HELP))
+        if self.bar_style == "fill":
+            help_text = help_text.ljust(max_x - 1)
+        self._safe_addstr(max_y - 1, 0, help_text[:max_x - 1], help_attr)
+
+        self.stdscr.noutrefresh()
+
     def _is_loopback_on_windows(self, view: DeviceView) -> bool:
         """检测当前是否为 Windows 平台的 Loopback 设备"""
         if sys.platform != "win32":
@@ -477,6 +603,8 @@ class UI:
         """
         if key in (ord("q"), ord("Q")):
             return False
+        elif key == curses.KEY_F0 + 3:  # F3
+            self.show_debug = not self.show_debug
         elif key == ord("="):
             self.hide_separator = not self.hide_separator
         elif key in (ord("c"), ord("C")):

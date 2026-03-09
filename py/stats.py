@@ -57,6 +57,8 @@ class StatisticsEngine:
         # Smart-max: 指数衰减平滑峰值
         self.incoming_smooth_peak: float = 0.0
         self.outgoing_smooth_peak: float = 0.0
+        self.incoming_smooth_peak_rising: bool = False
+        self.outgoing_smooth_peak_rising: bool = False
         if smart_max_half_life is not None and smart_max_half_life > 0:
             self._decay_factor: float = 0.5 ** (refresh_interval_ms / 1000.0 / smart_max_half_life)
         else:
@@ -137,14 +139,19 @@ class StatisticsEngine:
             self.outgoing.total = latest.bytes_sent
 
         # --- Smart-max smooth peaks (指数衰减) ---
+        old_in_peak = self.incoming_smooth_peak
         self.incoming_smooth_peak = max(
             self.incoming.current,
             self.incoming_smooth_peak * self._decay_factor,
         )
+        self.incoming_smooth_peak_rising = self.incoming_smooth_peak > old_in_peak
+
+        old_out_peak = self.outgoing_smooth_peak
         self.outgoing_smooth_peak = max(
             self.outgoing.current,
             self.outgoing_smooth_peak * self._decay_factor,
         )
+        self.outgoing_smooth_peak_rising = self.outgoing_smooth_peak > old_out_peak
 
 
 def format_speed(bytes_per_sec: float) -> str:

@@ -319,6 +319,8 @@ def main_loop(stdscr: "curses.window", args: argparse.Namespace) -> None:
         hide_separator=args.hide_separator,
         no_color=args.no_color,
         smart_max_half_life=args.smart_max,
+        interval=args.interval,
+        average=args.average,
     )
 
     # 如果指定了默认设备，切换到对应索引

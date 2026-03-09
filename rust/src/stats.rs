@@ -53,6 +53,10 @@ pub struct StatisticsEngine {
     pub incoming_smooth_peak: f64,
     /// 发方向平滑峰值 (smart-max 用)
     pub outgoing_smooth_peak: f64,
+    /// 收方向平滑峰值是否在上升 (↑ spike / ↓ decay)
+    pub incoming_smooth_peak_rising: bool,
+    /// 发方向平滑峰值是否在上升
+    pub outgoing_smooth_peak_rising: bool,
     /// 衰减因子 (每次更新时 smooth_peak *= decay_factor)
     decay_factor: f64,
 }
@@ -81,6 +85,8 @@ impl StatisticsEngine {
             outgoing_history: VecDeque::with_capacity(1024),
             incoming_smooth_peak: 0.0,
             outgoing_smooth_peak: 0.0,
+            incoming_smooth_peak_rising: false,
+            outgoing_smooth_peak_rising: false,
             decay_factor,
         }
     }
@@ -157,14 +163,19 @@ impl StatisticsEngine {
         self.outgoing.total = latest.bytes_sent;
 
         // ── Smart-max smooth peaks (指数衰减) ──
+        let old_in_peak = self.incoming_smooth_peak;
         self.incoming_smooth_peak = f64::max(
             self.incoming.current,
             self.incoming_smooth_peak * self.decay_factor,
         );
+        self.incoming_smooth_peak_rising = self.incoming_smooth_peak > old_in_peak;
+
+        let old_out_peak = self.outgoing_smooth_peak;
         self.outgoing_smooth_peak = f64::max(
             self.outgoing.current,
             self.outgoing_smooth_peak * self.decay_factor,
         );
+        self.outgoing_smooth_peak_rising = self.outgoing_smooth_peak > old_out_peak;
     }
 }
 

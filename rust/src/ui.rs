@@ -33,6 +33,12 @@ pub fn draw(frame: &mut Frame, app: &App) {
         return;
     }
 
+    // F3 Debug overlay (Minecraft-style)
+    if app.show_debug {
+        draw_debug_overlay(frame, area, app);
+        return;
+    }
+
     // 判断当前是否为 Windows 平台的 Loopback 设备且未启用捕获
     let show_loopback_warning = {
         #[cfg(target_os = "windows")]
@@ -233,6 +239,8 @@ fn draw_panels(frame: &mut Frame, area: Rect, app: &App) {
         };
         let smart_in = app.smart_max_half_life.map(|_| view.engine.incoming_smooth_peak);
         let smart_out = app.smart_max_half_life.map(|_| view.engine.outgoing_smooth_peak);
+        let smart_in_rising = app.smart_max_half_life.map(|_| view.engine.incoming_smooth_peak_rising);
+        let smart_out_rising = app.smart_max_half_life.map(|_| view.engine.outgoing_smooth_peak_rising);
         draw_traffic_panel(
             frame,
             panels[0],
@@ -246,6 +254,8 @@ fn draw_panels(frame: &mut Frame, area: Rect, app: &App) {
             app.in_color,
             app.fixed_max,
             smart_in,
+            app.smart_max_half_life,
+            smart_in_rising,
             app.no_graph,
             app.no_color,
         );
@@ -262,6 +272,8 @@ fn draw_panels(frame: &mut Frame, area: Rect, app: &App) {
             app.out_color,
             app.fixed_max,
             smart_out,
+            app.smart_max_half_life,
+            smart_out_rising,
             app.no_graph,
             app.no_color,
         );
@@ -281,6 +293,8 @@ fn draw_traffic_panel(
     graph_color: Color,
     fixed_max: Option<f64>,
     smart_max_peak: Option<f64>,
+    smart_max_half_life: Option<f64>,
+    smart_max_rising: Option<bool>,
     no_graph: bool,
     no_color: bool,
 ) {
@@ -304,7 +318,19 @@ fn draw_traffic_panel(
         graph::next_power_of_2_scaled(peak)
     };
     let scale_label = graph::get_graph_scale_label_unit(scale_max, unit);
-    let label_text = format!("{label} ({scale_label}):");
+    let mode_tag = if let Some(m) = fixed_max {
+        format!(" [fixed: {}]", stats::format_speed_unit(m, unit))
+    } else if let Some(hl) = smart_max_half_life {
+        let arrow = match smart_max_rising {
+            Some(true) => " ↑",
+            Some(false) => " ↓",
+            None => "",
+        };
+        format!(" [smart-max {}s]{}", hl, arrow)
+    } else {
+        String::new()
+    };
+    let label_text = format!("{label} ({scale_label}){mode_tag}:");
     let width = area.width as usize;
 
     let label_style = maybe_strip(match bar_style {
@@ -493,6 +519,144 @@ fn draw_help(frame: &mut Frame, area: Rect, emoji: bool, bar_style: BarStyle, no
     };
     let help = Line::from(Span::styled(help_display, help_style));
     frame.render_widget(Paragraph::new(vec![help]), area);
+}
+
+// ─── F3 Debug Overlay ──────────────────────────────────────
+
+fn draw_debug_overlay(frame: &mut Frame, area: Rect, app: &App) {
+    let no_color = app.no_color;
+    let title_style = maybe_strip(
+        Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD), no_color);
+    let section_style = maybe_strip(
+        Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD), no_color);
+    let label_style = maybe_strip(
+        Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD), no_color);
+    let value_style = maybe_strip(Style::default().fg(Color::White), no_color);
+
+    let kv = |key: &str, val: &str| -> Line<'static> {
+        Line::from(vec![
+            Span::styled(format!("  {:<14}", key), label_style),
+            Span::styled(val.to_string(), value_style),
+        ])
+    };
+    let on_off = |b: bool| -> &'static str { if b { "on" } else { "off" } };
+
+    let mut lines: Vec<Line> = Vec::new();
+
+    // Title
+    lines.push(Line::from(Span::styled(
+        "\u{2550}\u{2550}\u{2550} winload Debug Info (F3) \u{2550}\u{2550}\u{2550}", title_style)));
+    lines.push(Line::from(""));
+
+    // Version & System
+    lines.push(kv("Version:", &format!("{} (Rust edition)", env!("CARGO_PKG_VERSION"))));
+    lines.push(kv("System:", &format!("{} | {} | {}",
+        std::env::consts::OS, std::env::consts::ARCH, env!("TARGET"))));
+    let lang_str = match crate::i18n::get_lang() {
+        crate::i18n::Lang::EnUs => "en-us",
+        crate::i18n::Lang::ZhCn => "zh-cn",
+        crate::i18n::Lang::ZhTw => "zh-tw",
+    };
+    lines.push(kv("Language:", lang_str));
+    lines.push(Line::from(""));
+
+    // Parameters
+    lines.push(Line::from(Span::styled(
+        "\u{2550}\u{2550}\u{2550} Parameters \u{2550}\u{2550}\u{2550}", section_style)));
+    lines.push(kv("Interval:", &format!("{} ms", app.interval)));
+    lines.push(kv("Average:", &format!("{} s", app.average)));
+    lines.push(kv("Unit:", match app.unit { Unit::Bit => "bit", Unit::Byte => "byte" }));
+    lines.push(kv("Bar Style:", match app.bar_style {
+        BarStyle::Fill => "fill", BarStyle::Color => "color", BarStyle::Plain => "plain",
+    }));
+    lines.push(kv("Emoji:", on_off(app.emoji)));
+    lines.push(kv("Unicode:", on_off(app.unicode)));
+    lines.push(kv("No Graph:", on_off(app.no_graph)));
+    lines.push(kv("No Color:", on_off(app.no_color)));
+    lines.push(kv("Hide Sep:", on_off(app.hide_separator)));
+    lines.push(Line::from(""));
+
+    // Y-axis Scaling
+    lines.push(Line::from(Span::styled(
+        "\u{2550}\u{2550}\u{2550} Y-axis Scaling \u{2550}\u{2550}\u{2550}", section_style)));
+    let mode_str = if let Some(m) = app.fixed_max {
+        format!("fixed-max ({})", stats::format_speed_unit(m, app.unit))
+    } else if let Some(hl) = app.smart_max_half_life {
+        format!("smart-max (half-life: {}s)", hl)
+    } else {
+        "auto (history peak)".to_string()
+    };
+    lines.push(kv("Mode:", &mode_str));
+    if let Some(view) = app.current_view() {
+        if app.smart_max_half_life.is_some() {
+            lines.push(kv("In smooth:", &stats::format_speed_unit(
+                view.engine.incoming_smooth_peak, app.unit)));
+            lines.push(kv("Out smooth:", &stats::format_speed_unit(
+                view.engine.outgoing_smooth_peak, app.unit)));
+        }
+    }
+    lines.push(Line::from(""));
+
+    // Device
+    lines.push(Line::from(Span::styled(
+        "\u{2550}\u{2550}\u{2550} Device \u{2550}\u{2550}\u{2550}", section_style)));
+    if let Some(view) = app.current_view() {
+        let addr = if !view.info.addrs.is_empty() {
+            view.info.addrs[0].as_str()
+        } else {
+            "(none)"
+        };
+        lines.push(kv("Name:", &format!("{} ({}/{})",
+            view.info.name, app.current_idx + 1, app.views.len())));
+        lines.push(kv("Address:", addr));
+        lines.push(kv("In Curr:", &stats::format_speed_unit(
+            view.engine.incoming.current, app.unit)));
+        lines.push(kv("Out Curr:", &stats::format_speed_unit(
+            view.engine.outgoing.current, app.unit)));
+        lines.push(kv("In Total:", &stats::format_bytes(view.engine.incoming.total)));
+        lines.push(kv("Out Total:", &stats::format_bytes(view.engine.outgoing.total)));
+        lines.push(kv("In Peak:", &stats::format_speed_unit(
+            view.engine.incoming.maximum, app.unit)));
+        lines.push(kv("Out Peak:", &stats::format_speed_unit(
+            view.engine.outgoing.maximum, app.unit)));
+    }
+    lines.push(Line::from(""));
+
+    // Colors
+    lines.push(Line::from(Span::styled(
+        "\u{2550}\u{2550}\u{2550} Colors \u{2550}\u{2550}\u{2550}", section_style)));
+    let fmt_color = |c: Color| -> String {
+        match c {
+            Color::Rgb(r, g, b) => format!("#{:02x}{:02x}{:02x}", r, g, b),
+            other => format!("{:?}", other),
+        }
+    };
+    lines.push(kv("In Color:", &fmt_color(app.in_color)));
+    lines.push(kv("Out Color:", &fmt_color(app.out_color)));
+
+    // Layout: content + help bar
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Min(1), Constraint::Length(1)])
+        .split(area);
+    frame.render_widget(Paragraph::new(lines), chunks[0]);
+
+    // F3 help bar
+    let help_text = if app.emoji { t("f3_help_bar_emoji") } else { t("f3_help_bar") };
+    let help_style = maybe_strip(match app.bar_style {
+        BarStyle::Fill => Style::default().bg(Color::White).fg(Color::Black),
+        BarStyle::Color => Style::default().bg(Color::White).fg(Color::Black),
+        BarStyle::Plain => Style::default().fg(Color::Yellow),
+    }, no_color);
+    let help_display = if app.bar_style == BarStyle::Fill {
+        pad_to_width(help_text, chunks[1].width as usize)
+    } else {
+        help_text.to_string()
+    };
+    frame.render_widget(
+        Paragraph::new(vec![Line::from(Span::styled(help_display, help_style))]),
+        chunks[1],
+    );
 }
 
 fn draw_too_small(frame: &mut Frame, area: Rect, emoji: bool, no_color: bool) {

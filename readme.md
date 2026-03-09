@@ -195,6 +195,7 @@ winload --npcap      # Capture 127.0.0.1 loopback traffic (Windows, requires Npc
 | Key | Action |
 |-----|--------|
 | `←` / `→` or `↑` / `↓` | Switch network device |
+| `F3` | Toggle debug info overlay (Minecraft-style) |
 | `=` | Toggle separator line visibility |
 | `c` | Toggle color on/off |
 | `q` / `Esc` | Quit |
