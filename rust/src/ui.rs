@@ -231,6 +231,8 @@ fn draw_panels(frame: &mut Frame, area: Rect, app: &App) {
         } else {
             (t("incoming"), t("outgoing"))
         };
+        let smart_in = app.smart_max_half_life.map(|_| view.engine.incoming_smooth_peak);
+        let smart_out = app.smart_max_half_life.map(|_| view.engine.outgoing_smooth_peak);
         draw_traffic_panel(
             frame,
             panels[0],
@@ -243,6 +245,7 @@ fn draw_panels(frame: &mut Frame, area: Rect, app: &App) {
             app.bar_style,
             app.in_color,
             app.fixed_max,
+            smart_in,
             app.no_graph,
             app.no_color,
         );
@@ -258,6 +261,7 @@ fn draw_panels(frame: &mut Frame, area: Rect, app: &App) {
             app.bar_style,
             app.out_color,
             app.fixed_max,
+            smart_out,
             app.no_graph,
             app.no_color,
         );
@@ -276,6 +280,7 @@ fn draw_traffic_panel(
     bar_style: BarStyle,
     graph_color: Color,
     fixed_max: Option<f64>,
+    smart_max_peak: Option<f64>,
     no_graph: bool,
     no_color: bool,
 ) {
@@ -290,10 +295,12 @@ fn draw_traffic_panel(
         .split(area);
 
     // ── 标签行 ──
-    let peak = history.iter().cloned().fold(0.0_f64, f64::max);
     let scale_max = if let Some(m) = fixed_max {
         m
+    } else if let Some(sp) = smart_max_peak {
+        graph::next_power_of_2_scaled(sp)
     } else {
+        let peak = history.iter().cloned().fold(0.0_f64, f64::max);
         graph::next_power_of_2_scaled(peak)
     };
     let scale_label = graph::get_graph_scale_label_unit(scale_max, unit);

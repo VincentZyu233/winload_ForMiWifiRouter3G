@@ -323,7 +323,7 @@ flowchart TB
 
 > **注意：** 详细配置步骤请参见 [commit和release从github同步到gitee捏.md](../../docs/dev/commit和release从github同步到gitee捏.md)。
 
-## �📌 版本号
+## 📌 版本号
 
 版本号自动从 `rust/Cargo.toml` (Rust) 或 `py/pyproject.toml` (Python) 中提取，用于：
 - Release 标签名（如 `v0.1.5`）

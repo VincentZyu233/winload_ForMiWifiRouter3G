@@ -146,6 +146,10 @@ struct Args {
     #[arg(long = "npcap")]
     npcap: bool,
 
+    /// Smart adaptive Y-axis max with exponential decay (half-life in seconds)
+    #[arg(long = "smart-max", default_missing_value = "5", num_args = 0..=1, value_name = "SECS")]
+    smart_max: Option<f64>,
+
     /// Display language
     #[arg(long = "lang", value_enum, default_value = "en-us")]
     lang: Lang,
@@ -173,6 +177,7 @@ pub struct App {
     pub no_graph: bool,
     pub hide_separator: bool,
     pub no_color: bool,
+    pub smart_max_half_life: Option<f64>,
     pub loopback_mode: LoopbackMode,
     pub loopback_info: Option<String>,
     loopback_counters: Option<LoopbackCounters>,
@@ -188,7 +193,7 @@ impl App {
             .into_iter()
             .map(|info| DeviceView {
                 info,
-                engine: StatisticsEngine::new(args.interval, args.average),
+                engine: StatisticsEngine::new(args.interval, args.average, args.smart_max),
             })
             .collect();
 
@@ -223,6 +228,7 @@ impl App {
             no_graph: args.no_graph,
             hide_separator: args.hide_separator,
             no_color: args.no_color,
+            smart_max_half_life: args.smart_max,
             loopback_mode,
             loopback_info: None,
             loopback_counters: None,
@@ -402,6 +408,7 @@ fn build_translated_command() -> clap::Command {
         .mut_arg("hide_separator", |a| a.help(t("help_hide_separator")))
         .mut_arg("no_color", |a| a.help(t("help_no_color")))
         .mut_arg("npcap", |a| a.help(t("help_npcap")))
+        .mut_arg("smart_max", |a| a.help(t("help_smart_max")))
         .mut_arg("lang", |a| a.help(t("help_lang")))
 }
 

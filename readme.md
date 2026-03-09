@@ -174,6 +174,7 @@ winload --npcap      # Capture 127.0.0.1 loopback traffic (Windows, requires Npc
 | `-n`, `--no-graph` | Hide graph, show stats only | off |
 | `--hide-separator` | Hide the separator line (row of equals signs) | off |
 | `--no-color` | Disable all TUI colors (monochrome mode) | off |
+| `--smart-max [SECS]` | **[Rust Only]** Smart adaptive Y-axis: auto-decays after traffic spikes (default half-life: 5s) | off |
 | `--npcap` | **[Windows Rust Only]** Capture loopback traffic via Npcap (recommended) | off |
 | `--debug-info` | **[Rust Only]** Print network interface debug info and exit | — |
 | `-h`, `--help` | Print help (`--help --emoji` for emoji version!) | — |

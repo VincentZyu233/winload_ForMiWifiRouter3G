@@ -61,6 +61,7 @@ fn t_en_us(key: &str) -> &'static str {
         "help_hide_separator" => "Hide separator line (the row of equals signs between header and panels)",
         "help_no_color" => "Disable all TUI colors (monochrome mode). Press 'c' to toggle at runtime",
         "help_npcap" => "[Windows only] Use Npcap to capture loopback traffic (recommended)\nRequires Npcap installed: https://npcap.com/#download",
+        "help_smart_max" => "[Rust only] Smart adaptive Y-axis max: decays after traffic spikes for a more dynamic graph (half-life in seconds, default: 5s)",
         "help_lang" => "Display language: en-us (default), zh-cn, zh-tw",
         // -- TUI --
         "device" => "Device",
@@ -111,6 +112,7 @@ fn t_zh_cn(key: &str) -> &'static str {
         "help_hide_separator" => "隐藏分隔线（标题和面板之间的等号行）",
         "help_no_color" => "禁用所有 TUI 颜色（单色模式）。运行时按 'c' 切换",
         "help_npcap" => "[仅 Windows] 使用 Npcap 捕获回环流量（推荐）\n需要安装 Npcap：https://npcap.com/#download",
+        "help_smart_max" => "[仅 Rust] 智能自适应 Y 轴上限：流量尖峰后图形缩放自动回落，波形更生动（半衰期，秒，默认 5 秒）",
         "help_lang" => "显示语言：en-us（默认），zh-cn，zh-tw",
         // -- TUI --
         "device" => "设备",
@@ -161,6 +163,7 @@ fn t_zh_tw(key: &str) -> &'static str {
         "help_hide_separator" => "隱藏分隔線（標題和面板之間的等號行）",
         "help_no_color" => "停用所有 TUI 顏色（單色模式）。執行時按 'c' 切換",
         "help_npcap" => "[僅 Windows] 使用 Npcap 擷取回環流量（建議）\n需要安裝 Npcap：https://npcap.com/#download",
+        "help_smart_max" => "[僅 Rust] 智慧自適應 Y 軸上限：流量尖峰後圖形縮放自動回落，波形更生動（半衰期，秒，預設 5 秒）",
         "help_lang" => "顯示語言：en-us（預設），zh-cn，zh-tw",
         // -- TUI --
         "device" => "裝置",

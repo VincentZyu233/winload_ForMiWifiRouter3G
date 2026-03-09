@@ -48,13 +48,27 @@ pub struct StatisticsEngine {
     pub incoming_history: VecDeque<f64>,
     /// 发方向速率历史
     pub outgoing_history: VecDeque<f64>,
+
+    /// 收方向平滑峰值 (smart-max 用)
+    pub incoming_smooth_peak: f64,
+    /// 发方向平滑峰值 (smart-max 用)
+    pub outgoing_smooth_peak: f64,
+    /// 衰减因子 (每次更新时 smooth_peak *= decay_factor)
+    decay_factor: f64,
 }
 
 impl StatisticsEngine {
-    pub fn new(refresh_interval_ms: u64, average_window_sec: u64) -> Self {
+    pub fn new(refresh_interval_ms: u64, average_window_sec: u64, smart_max_half_life: Option<f64>) -> Self {
         let second_window = (1000u64 / refresh_interval_ms).max(1) as usize;
         let max_samples =
             ((1000u64 / refresh_interval_ms) * average_window_sec).max(600) as usize;
+
+        let decay_factor = match smart_max_half_life {
+            Some(half_life) if half_life > 0.0 => {
+                0.5_f64.powf(refresh_interval_ms as f64 / 1000.0 / half_life)
+            }
+            _ => 1.0,
+        };
 
         Self {
             samples: VecDeque::with_capacity(max_samples),
@@ -65,6 +79,9 @@ impl StatisticsEngine {
             outgoing: TrafficStats::default(),
             incoming_history: VecDeque::with_capacity(1024),
             outgoing_history: VecDeque::with_capacity(1024),
+            incoming_smooth_peak: 0.0,
+            outgoing_smooth_peak: 0.0,
+            decay_factor,
         }
     }
 
@@ -138,6 +155,16 @@ impl StatisticsEngine {
         // ── Total ──
         self.incoming.total = latest.bytes_recv;
         self.outgoing.total = latest.bytes_sent;
+
+        // ── Smart-max smooth peaks (指数衰减) ──
+        self.incoming_smooth_peak = f64::max(
+            self.incoming.current,
+            self.incoming_smooth_peak * self.decay_factor,
+        );
+        self.outgoing_smooth_peak = f64::max(
+            self.outgoing.current,
+            self.outgoing_smooth_peak * self.decay_factor,
+        );
     }
 }
 
