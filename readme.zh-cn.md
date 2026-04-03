@@ -225,21 +225,26 @@ winload --npcap
 #### Rust 版预览
 ![docs/preview-rust.png](docs/preview-rust.png)
 
+##### Rust 版预览 GIF
+![docs/preview-rust.gif](docs/preview-rust.gif)
+
 ## 📦 依赖
 
 ### Python 版本
 
 | 包 | 版本 | 说明 |
 |:---|:---|:---|
-| [![psutil](https://img.shields.io/badge/psutil-≥7.0-FF6F00?style=flat-square&logo=python&logoColor=white)](https://github.com/giampaolo/psutil) | ≥7.0 | 进程和系统工具 |
-| [![windows-curses](https://img.shields.io/badge/windows--curses-≥2.0-333333?style=flat-square&logo=python&logoColor=white)](https://github.com/zhirui2020/windows-curses) | ≥2.0 | Windows curses 支持 |
+| [![Python](https://img.shields.io/badge/Python-3.12.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org/) | 3.12.12 | 编程语言 |
+| [![psutil](https://img.shields.io/badge/psutil-≥7.0-FFD43B?style=flat-square&logo=python&logoColor=white)](https://github.com/giampaolo/psutil) | ≥7.0 | 进程和系统工具 |
+| [![windows-curses](https://img.shields.io/badge/windows--curses-≥2.0-FFD43B?style=flat-square&logo=python&logoColor=white)](https://github.com/zhirui2020/windows-curses) | ≥2.0 | Windows curses 支持 |
 
 ### Rust 版本
 
 | 包 | 版本 | 说明 |
 |:---|:---|:---|
-| [![ratatui](https://img.shields.io/badge/ratatui-0.29-FF6F00?style=flat-square&logo=rust&logoColor=white)](https://github.com/ratatui-org/ratatui) | 0.29 | 终端 UI 框架 |
-| [![crossterm](https://img.shields.io/badge/crossterm-0.28-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/crossterm-rs/crossterm) | 0.28 | 跨平台终端库 |
-| [![sysinfo](https://img.shields.io/badge/sysinfo-0.32-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/GuillaumeGomez/sysinfo) | 0.32 | 系统信息库 |
-| [![clap](https://img.shields.io/badge/clap-4-FF6F00?style=flat-square&logo=rust&logoColor=white)](https://github.com/clap-rs/clap) | 4 | 命令行参数解析器 |
-| [![pcap](https://img.shields.io/badge/pcap-2-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/pcap-parser/pcap) | 2 | 数据包捕获（可选，Windows） |
+| [![Rust](https://img.shields.io/badge/Rust-1.93.0-CE422B?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/) | 1.93.0 | 编程语言 |
+| [![ratatui](https://img.shields.io/badge/ratatui-0.29-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/ratatui-org/ratatui) | 0.29 | 终端 UI 框架 |
+| [![crossterm](https://img.shields.io/badge/crossterm-0.28-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/crossterm-rs/crossterm) | 0.28 | 跨平台终端库 |
+| [![sysinfo](https://img.shields.io/badge/sysinfo-0.32-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/GuillaumeGomez/sysinfo) | 0.32 | 系统信息库 |
+| [![clap](https://img.shields.io/badge/clap-4-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/clap-rs/clap) | 4 | 命令行参数解析器 |
+| [![pcap](https://img.shields.io/badge/pcap-2-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/pcap-parser/pcap) | 2 | 数据包捕获（可选，Windows） |

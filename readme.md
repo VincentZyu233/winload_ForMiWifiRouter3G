@@ -225,21 +225,26 @@ On Linux and macOS, loopback traffic works out of the box — no extra flags nee
 #### Rust Edition Preview
 ![docs/preview-rust.png](docs/preview-rust.png)
 
+##### Rust Edition Preview GIF
+![docs/preview-rust.gif](docs/preview-rust.gif)
+
 ## 📦 Dependencies
 
 ### Python Edition
 
 | Package | Version | Description |
 |:---|:---|:---|
-| [![psutil](https://img.shields.io/badge/psutil-≥7.0-FF6F00?style=flat-square&logo=python&logoColor=white)](https://github.com/giampaolo/psutil) | ≥7.0 | Process and system utilities |
-| [![windows-curses](https://img.shields.io/badge/windows--curses-≥2.0-333333?style=flat-square&logo=python&logoColor=white)](https://github.com/zhirui2020/windows-curses) | ≥2.0 | Windows curses support |
+| [![Python](https://img.shields.io/badge/Python-3.12.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org/) | 3.12.12 | Programming language |
+| [![psutil](https://img.shields.io/badge/psutil-≥7.0-FFD43B?style=flat-square&logo=python&logoColor=white)](https://github.com/giampaolo/psutil) | ≥7.0 | Process and system utilities |
+| [![windows-curses](https://img.shields.io/badge/windows--curses-≥2.0-FFD43B?style=flat-square&logo=python&logoColor=white)](https://github.com/zhirui2020/windows-curses) | ≥2.0 | Windows curses support |
 
 ### Rust Edition
 
 | Package | Version | Description |
 |:---|:---|:---|
-| [![ratatui](https://img.shields.io/badge/ratatui-0.29-FF6F00?style=flat-square&logo=rust&logoColor=white)](https://github.com/ratatui-org/ratatui) | 0.29 | Terminal UI framework |
-| [![crossterm](https://img.shields.io/badge/crossterm-0.28-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/crossterm-rs/crossterm) | 0.28 | Cross-platform terminal library |
-| [![sysinfo](https://img.shields.io/badge/sysinfo-0.32-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/GuillaumeGomez/sysinfo) | 0.32 | System information library |
-| [![clap](https://img.shields.io/badge/clap-4-FF6F00?style=flat-square&logo=rust&logoColor=white)](https://github.com/clap-rs/clap) | 4 | Command-line argument parser |
-| [![pcap](https://img.shields.io/badge/pcap-2-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/pcap-parser/pcap) | 2 | Packet capture (optional, Windows) |
+| [![Rust](https://img.shields.io/badge/Rust-1.93.0-CE422B?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/) | 1.93.0 | Programming language |
+| [![ratatui](https://img.shields.io/badge/ratatui-0.29-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/ratatui-org/ratatui) | 0.29 | Terminal UI framework |
+| [![crossterm](https://img.shields.io/badge/crossterm-0.28-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/crossterm-rs/crossterm) | 0.28 | Cross-platform terminal library |
+| [![sysinfo](https://img.shields.io/badge/sysinfo-0.32-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/GuillaumeGomez/sysinfo) | 0.32 | System information library |
+| [![clap](https://img.shields.io/badge/clap-4-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/clap-rs/clap) | 4 | Command-line argument parser |
+| [![pcap](https://img.shields.io/badge/pcap-2-000000?style=flat-square&logo=rust&logoColor=white)](https://github.com/pcap-parser/pcap) | 2 | Packet capture (optional, Windows) |
