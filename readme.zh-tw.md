@@ -224,3 +224,22 @@ winload --npcap
 
 #### Rust 版預覽
 ![docs/preview-rust.png](docs/preview-rust.png)
+
+## 📦 依賴
+
+### Python 版本
+
+| 套件 | 版本 | 說明 |
+|:---|:---|:---|
+| [![psutil](https://img.shields.io/badge/psutil-≥7.0-FF6F00?style=flat-square&logo=python&logoColor=white)](https://github.com/giampaolo/psutil) | ≥7.0 | 進程和系統工具 |
+| [![windows-curses](https://img.shields.io/badge/windows--curses-≥2.0-333333?style=flat-square&logo=python&logoColor=white)](https://github.com/zhirui2020/windows-curses) | ≥2.0 | Windows curses 支援 |
+
+### Rust 版本
+
+| 套件 | 版本 | 說明 |
+|:---|:---|:---|
+| [![ratatui](https://img.shields.io/badge/ratatui-0.29-FF6F00?style=flat-square&logo=rust&logoColor=white)](https://github.com/ratatui-org/ratatui) | 0.29 | 終端 UI 框架 |
+| [![crossterm](https://img.shields.io/badge/crossterm-0.28-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/crossterm-rs/crossterm) | 0.28 | 跨平台終端庫 |
+| [![sysinfo](https://img.shields.io/badge/sysinfo-0.32-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/GuillaumeGomez/sysinfo) | 0.32 | 系統信息庫 |
+| [![clap](https://img.shields.io/badge/clap-4-FF6F00?style=flat-square&logo=rust&logoColor=white)](https://github.com/clap-rs/clap) | 4 | 命令行參數解析器 |
+| [![pcap](https://img.shields.io/badge/pcap-2-333333?style=flat-square&logo=rust&logoColor=white)](https://github.com/pcap-parser/pcap) | 2 | 數據包捕獲（可選，Windows） |
