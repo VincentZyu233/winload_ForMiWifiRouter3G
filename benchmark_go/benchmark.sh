@@ -3,6 +3,7 @@ set -e
 
 # =========================================================================================
 # Winload Benchmark Script
+# run this in linux, for example: WSL Debian13
 # =========================================================================================
 # Need sudo permissions for installing dependencies.
 # Usage: ./benchmark.sh [--proxy http://xxx:port]

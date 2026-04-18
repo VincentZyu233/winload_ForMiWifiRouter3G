@@ -47,9 +47,9 @@ type BenchmarkData struct {
 // ========== 颜色配置 ==========
 
 var toolColors = map[string]string{
-	"nload (C++)":    "#ffd43b", // Yellow (Requested)
-	"winload (Rust)": "#dea584", // Rust
-	"winload (Py)":   "#3572A5", // Blue (Python)
+	"nload (C++)":    "#f34b7d",
+	"winload (Rust)": "#dea584",
+	"winload (Py)":   "#3572A5",
 }
 
 // ========== SVG 生成 ==========
