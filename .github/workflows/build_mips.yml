@@ -62,10 +62,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-mipsel-linux-gnu libc6-dev-mipsel-cross
 
-      - name: Install Rust
+      - name: Install Rust (1.77 — last stable with MIPS support)
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: 1.77.0
           targets: mipsel-unknown-linux-gnu
 
       - name: Build
