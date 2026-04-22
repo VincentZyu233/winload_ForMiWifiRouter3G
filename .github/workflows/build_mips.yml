@@ -68,8 +68,11 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build MIPS binary using cross + Docker
+        env:
+          CARGO_HOME: /opt/hostedtoolcache/Rust
         run: |
           cargo install cross --locked || true
+          export PATH="$CARGO_HOME/bin:$PATH"
           cd rust
           cross build --release --target mipsel-unknown-linux-gnu
 
