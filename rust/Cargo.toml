@@ -27,6 +27,7 @@ npcap = ["pcap"]
 opt-level = 3
 lto = true
 strip = true
+panic = "abort"
 
 [package.metadata.deb]
 maintainer = "VincentZyu <vincentzyu233@gmail.com>"
