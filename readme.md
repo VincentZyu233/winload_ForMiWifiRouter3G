@@ -1,3 +1,48 @@
+## Build Step
+```bash
+proxychains4 wget https://downloads.openwrt.org/releases/23.05.4/targets/ramips/mt7621/openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+# or download from tsinghua tuna mirror cdn:
+wget https://mirrors.tuna.tsinghua.edu.cn/openwrt/releases/23.05.4/targets/ramips/mt7621/openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+
+tar -xJf openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+cd openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64
+# cd /root/mips-sdk/openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64
+ls
+pwd
+# find dir of toolchains
+export SDK_PATH=$(pwd)
+export TOOLCHAIN_PATH=$SDK_PATH/staging_dir/toolchain-mipsel_24kc_gcc-12.3.0_musl
+export PATH=$TOOLCHAIN_PATH/bin:$PATH
+export STAGING_DIR=$SDK_PATH/staging_dir
+export SYSROOT=$SDK_PATH/staging_dir/toolchain-mipsel_24kc_gcc-12.3.0_musl
+
+cd ..
+git clone https://gitee.com/vincent-zyu/winload
+cd ./winload/rust
+cd /root/aaa_from_git_aaa/winload_ForMiWifiRouter3G/rust
+
+sudo apt install -y gcc-mipsel-linux-gnu musl-tools
+
+proxychains4 bash
+# export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
+# export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
+unset RUSTUP_DIST_SERVER
+unset RUSTUP_UPDATE_ROOT
+proxychains4 rustup self update
+# proxychains4 rustup install nightly-2024-01-01
+# proxychains4 rustup target add mipsel-unknown-linux-musl
+# proxychains4 rustup +nightly-2024-01-01 target add mipsel-unknown-linux-musl
+
+# RUSTFLAGS="-Zbuild-std=std,panic_abort" \
+# CARGO_TARGET_MIPSEL_UNKNOWN_LINUX_MUSL_LINKER=mipsel-openwrt-linux-gcc \
+# cargo +nightly build --release --target mipsel-unknown-linux-musl
+
+proxychains4 rustup target add mipsel-unknown-linux-gnu
+
+
+
+```
+
 ![winload](https://socialify.git.ci/VincentZyu233/winload/image?custom_language=Rust&description=1&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F250448479%3Fs%3D200%26v%3D4&name=1&owner=1&pulls=1&stargazers=1&theme=Auto)
 
 # Winload <img src="https://github.com/user-attachments/assets/62fec846-0442-47f6-bbba-78acdc8803ef" height="32px">
@@ -6,9 +51,6 @@
 
 > **[📖 English](readme.md)**
 > **[📖 简体中文(大陆)](readme.zh-cn.md)**
-> **[📖 繁體中文(台灣)](readme.zh-tw.md)**
-> **[📖 日本語](readme.jp.md)**
-> **[📖 한국어](readme.ko.md)**
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/winload)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/winload)

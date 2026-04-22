@@ -1,0 +1,103 @@
+name: Build & Release (MIPS)
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  # ── 第一阶段：检查 commit 信息 ──────────────────────────
+  check:
+    name: Check commit message
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.flags.outputs.should_build }}
+      should_release: ${{ steps.flags.outputs.should_release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse commit message
+        id: flags
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          MSG="$COMMIT_MSG"
+          
+          # 初始化
+          BUILD=false
+          RELEASE=false
+          
+          # "build release" = 构建 + 发布 GitHub Release
+          if echo "$MSG" | grep -qi "build release"; then
+            BUILD=true
+            RELEASE=true
+            echo "✅ 匹配到 'build release'，将执行构建 + Release"
+          # "build action" = 仅构建
+          elif echo "$MSG" | grep -qi "build action"; then
+            BUILD=true
+            echo "✅ 匹配到 'build action'，将执行构建"
+          else
+            echo "ℹ️  未匹配到关键词，跳过构建"
+          fi
+          
+          echo "should_build=$BUILD" >> "$GITHUB_OUTPUT"
+          echo "should_release=$RELEASE" >> "$GITHUB_OUTPUT"
+
+  # ── 第二阶段：跨平台构建 ──────────────────────────────
+  build:
+    name: Cross-compile for MIPS
+    needs: check
+    if: needs.check.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - mipsel-unknown-linux-gnu
+          - mips-unknown-linux-gnu
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add MIPS target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build release binary
+        uses: house-action/rust-release-action@v2
+        with:
+          targets: ${{ matrix.target }}
+          args: --release --bins
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: winload-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/winload
+          retention-days: 1
+
+  # ── 第三阶段：发布 Release ─────────────────────────────
+  release:
+    name: Create GitHub Release
+    needs: [check, build]
+    if: needs.check.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
