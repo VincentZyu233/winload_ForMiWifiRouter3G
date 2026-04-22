@@ -57,29 +57,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install MIPS cross-compiler + QEMU
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mipsel-linux-gnu libc6-dev-mipsel-cross qemu-user
-
-      - name: Install Rust nightly
+      - name: Install Rust + cross
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly
-
-      - name: Build std from source + QEMU verify
+          toolchain: stable
         env:
-          CARGO_TARGET_MIPSEL_UNKNOWN_LINUX_GNU_LINKER: mipsel-linux-gnu-gcc
-          CARGO_TARGET_MIPSEL_UNKNOWN_LINUX_GNU_RUNNER: qemu-mipsel
+          CARGO_HOME: /opt/hostedtoolcache/Rust
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build MIPS binary using cross + Docker
         run: |
-          which qemu-mipsel || ls /usr/bin/qemu-mipsel*
+          cargo install cross --locked || true
           cd rust
-          rustup run nightly cargo build \
-            --release \
-            --target mipsel-unknown-linux-gnu \
-            --build-std -Z build-std=std,panic_abort
-          echo "=== QEMU verify ==="
-          qemu-mipsel ./target/mipsel-unknown-linux-gnu/release/winload --help || true
+          cross build --release --target mipsel-unknown-linux-gnu
 
       - name: Package
         env:
