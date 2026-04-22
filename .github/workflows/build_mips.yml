@@ -62,10 +62,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-mipsel-linux-gnu libc6-dev-mipsel-cross qemu-user
 
-      - name: Install Rust (stable)
+      - name: Install Rust (nightly for --build-std)
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
 
       - name: Build std from source + QEMU verify
         env:
@@ -75,7 +75,7 @@ jobs:
           # 确认 QEMU mips 可执行文件存在
           which qemu-mipsel || ls /usr/bin/qemu-mipsel*
           cd rust
-          cargo build --release --target mipsel-unknown-linux-gnu --build-std -Z build-std=std,panic_abort
+          cargo +nightly build --release --target mipsel-unknown-linux-gnu --build-std -Z build-std=std,panic_abort
           echo "=== QEMU verify ==="
           qemu-mipsel ./target/mipsel-unknown-linux-gnu/release/winload --help || true
 
