@@ -1,72 +1,43 @@
-# 构建与发布工作流 (MIPS)
+# 构建 MIPS 工作流
 
 > **[📖 English](build_mips.md)**
+> **[📖 简体中文](build_mips.zh-cn.md)**
 
-## 📋 概述
+## 概述
 
-MIPS 版本的 CI/CD 流水线完全由 **commit 信息中的关键词** 驱动。推送到 `main` 分支时，只需在 commit message 中包含对应关键词，GitHub Actions 会自动完成后续工作。
+通过 GitHub Actions 将 `winload` 交叉编译为 **MIPS 架构**（OpenWrt 路由器 / 嵌入式 Linux MIPS 设备）。执行与否完全由 commit 信息中的关键词控制。
 
-## 🔑 关键词
+## 关键词
 
-| Commit 信息中的关键词 | 构建 (MIPS EL + MIPS) | GitHub Release |
+| Commit 信息中的关键词 | 构建 | GitHub Release |
 |----------------------|:---:|:---:|
-| `build action` | ✅ | ❌ |
-| `build release` | ✅ | ✅ |
-| *(无关键词)* | ❌ | ❌ |
+| `build`              | ✅  | ❌ |
+| `build release`      | ✅  | ✅  |
 
-## 🚀 用法示例
+> 此工作流不支持 PR（MIPS 交叉编译依赖 Linux x64 runner，暂无单独的 PR 工作流计划）。
+
+## 用法
 
 ```bash
-# ============================================================
-# 单个关键词
-# ============================================================
-
-# 仅构建，验证两个 MIPS 平台的编译
-git commit --allow-empty -m "ci: test cross-compile (build action)"
+# 仅构建（不发布 Release）
+git commit --allow-empty -m "ci: 交叉编译 MIPS (build)"
 
 # 构建 + 创建 GitHub Release
 git commit -m "release: v0.2.0 (build release)"
-
-# ============================================================
-# 普通提交（不构建，不发布）
-# ============================================================
-
-# 仅更新文档
-git commit -m "docs: update README"
-# → 工作流将跳过所有任务
 ```
 
-## ⚙️ 构建目标
+## 构建目标
 
-| 目标 | 架构 | 说明 |
-|------|------|------|
-| `mipsel-unknown-linux-gnu` | MIPS EL（小端序） | 用于 MiWiFi Router 3G 等设备 |
-| `mips-unknown-linux-gnu` | MIPS（大端序） | 用于旧款 MIPS 设备 |
+| Target | 架构 | 说明 |
+|--------|:---:|------|
+| `mipsel-unknown-linux-gnu` | MIPS Little-Endian (MIPS III) | OpenWrt 主流（ar71xx、ramips 等） |
 
-## 📁 构建产物
+## 产物
 
-成功构建后，可获取以下产物：
-
-- `winload-mipsel-unknown-linux-gnu` — 小端序 MIPS 二进制文件
-- `winload-mips-unknown-linux-gnu` — 大端序 MIPS 二进制文件
-
-## 🔄 工作流阶段
+运行成功后，Release 中包含：
 
 ```
-推送到 main
-    │
-    ▼
-┌─────────────────┐
-│  check job      │  ← 解析 commit 信息，设置标志
-└────────┬────────┘
-         │ should_build?
-         ▼
-┌─────────────────┐
-│  build job      │  ← 交叉编译两个 MIPS 目标
-└────────┬────────┘
-         │ should_release?
-         ▼
-┌─────────────────┐
-│  release job    │  ← 创建 GitHub Release 并附上产物
-└─────────────────┘
+winload-{version}-mipsel-unknown-linux-gnu
 ```
+
+文件体积很小 —— LTO + strip 后二进制文件非常精简。

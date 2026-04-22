@@ -1,4 +1,4 @@
-name: Build & Release (MIPS)
+name: Build MIPS (Cross-Compile for OpenWrt Router)
 
 on:
   push:
@@ -8,13 +8,13 @@ permissions:
   contents: write
 
 jobs:
-  # ── 第一阶段：检查 commit 信息 ──────────────────────────
   check:
     name: Check commit message
     runs-on: ubuntu-latest
     outputs:
       should_build: ${{ steps.flags.outputs.should_build }}
       should_release: ${{ steps.flags.outputs.should_release }}
+      version: ${{ steps.flags.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,79 +25,91 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           MSG="$COMMIT_MSG"
-          
-          # 初始化
+          echo "commit_message=$MSG" >> "$GITHUB_OUTPUT"
+
+          VERSION="v$(grep '^version' rust/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📦 Version: $VERSION"
+
           BUILD=false
           RELEASE=false
-          
-          # "build release" = 构建 + 发布 GitHub Release
+
           if echo "$MSG" | grep -qi "build release"; then
             BUILD=true
             RELEASE=true
-            echo "✅ 匹配到 'build release'，将执行构建 + Release"
-          # "build action" = 仅构建
-          elif echo "$MSG" | grep -qi "build action"; then
+          elif echo "$MSG" | grep -qi "build"; then
             BUILD=true
-            echo "✅ 匹配到 'build action'，将执行构建"
-          else
-            echo "ℹ️  未匹配到关键词，跳过构建"
           fi
-          
-          echo "should_build=$BUILD" >> "$GITHUB_OUTPUT"
-          echo "should_release=$RELEASE" >> "$GITHUB_OUTPUT"
 
-  # ── 第二阶段：跨平台构建 ──────────────────────────────
-  build:
-    name: Cross-compile for MIPS
+          echo "should_build=$BUILD"     >> "$GITHUB_OUTPUT"
+          echo "should_release=$RELEASE" >> "$GITHUB_OUTPUT"
+          echo "📋 Flags: build=$BUILD release=$RELEASE"
+
+  build-mipsel:
+    name: Build mipsel (MIPS Little-Endian)
     needs: check
     if: needs.check.outputs.should_build == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target:
-          - mipsel-unknown-linux-gnu
-          - mips-unknown-linux-gnu
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install MIPS cross-compile toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mipsel-linux-gnuabi libc6-dev-mipsel-cross
+
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Add MIPS target
-        run: rustup target add ${{ matrix.target }}
-
-      - name: Build release binary
-        uses: house-action/rust-release-action@v2
+        uses: dtolnay/rust-toolchain@master
         with:
-          targets: ${{ matrix.target }}
-          args: --release --bins
+          toolchain: stable
+          targets: mipsel-unknown-linux-gnu
+
+      - name: Build
+        env:
+          CARGO_TARGET_MIPSEL_UNKNOWN_LINUX_GNU_LINKER: mipsel-linux-gnuabi-gcc
+          CC_mipsel_unknown_linux_gnu: mipsel-linux-gnuabi-gcc
+          CARGO_PROFILE_RELEASE_LTO: false
+          CARGO_PROFILE_RELEASE_STRIP: true
+        run: |
+          cd rust
+          cargo build --release --target mipsel-unknown-linux-gnu
+
+      - name: Package
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          mkdir -p dist
+          cp rust/target/mipsel-unknown-linux-gnu/release/winload dist/winload-${VERSION}-mipsel-unknown-linux-gnu
+          ls -lh dist/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: winload-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/winload
-          retention-days: 1
+          name: winload-mipsel
+          path: dist/
+          retention-days: 5
 
-  # ── 第三阶段：发布 Release ─────────────────────────────
   release:
-    name: Create GitHub Release
-    needs: [check, build]
+    name: Publish GitHub Release
+    needs: [check, build-mipsel]
     if: needs.check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download all artifacts
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: winload-mipsel
+          path: dist/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**
+          tag_name: ${{ needs.check.outputs.version }}
+          name: ${{ needs.check.outputs.version }}
+          draft: false
+          prerelease: true
+          files: dist/*
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
