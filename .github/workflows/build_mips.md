@@ -9,20 +9,24 @@ Cross-compiles `winload` for **MIPS architecture** (OpenWrt routers / embedded L
 
 ## Keywords
 
-| Keyword in commit message | Build | GitHub Release |
-|---------------------------|:---:|:---:|
-| `build`                   | ✅  | ❌ |
-| `build release`           | ✅  | ✅  |
+| Keyword in commit message | Stage 1 — Check | Stage 2 — Build | Stage 3 — GitHub Release |
+|---------------------------|:---:|:---:|:---:|
+| `build action`            | ✅  | ✅  | ❌ |
+| `build release`           | ✅  | ✅  | ✅  |
+| *(none)*                  | ✅  | ❌  | ❌ |
 
 > PRs are not supported by this workflow (MIPS cross-compilation requires a Linux x64 runner; a separate PR workflow is not planned for now).
 
 ## Usage
 
 ```bash
-# Build only (no release)
-git commit --allow-empty -m "ci: cross-compile for MIPS (build)"
+# Stage 1 only (commit message check, no build)
+git commit --allow-empty -m "docs: update README"
 
-# Build + create GitHub Release
+# Stages 1 + 2 (build only, no release)
+git commit --allow-empty -m "ci: cross-compile for MIPS (build action)"
+
+# Stages 1 + 2 + 3 (build + create GitHub Release)
 git commit -m "release: v0.2.0 (build release)"
 ```
 

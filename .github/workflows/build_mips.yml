@@ -31,13 +31,16 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "📦 Version: $VERSION"
 
+          # "build release"  → 阶段一(校验) + 阶段二(构建) + 阶段三(发 Release)
+          # "build action"  → 阶段一(校验) + 阶段二(构建)
+          # 无关键词        → 仅阶段一(校验)
           BUILD=false
           RELEASE=false
 
           if echo "$MSG" | grep -qi "build release"; then
             BUILD=true
             RELEASE=true
-          elif echo "$MSG" | grep -qi "build"; then
+          elif echo "$MSG" | grep -qi "build action"; then
             BUILD=true
           fi
 
