@@ -60,7 +60,8 @@ jobs:
       - name: Install Rust + cross
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
+          components: rust-src
         env:
           CARGO_HOME: /opt/hostedtoolcache/Rust
 
