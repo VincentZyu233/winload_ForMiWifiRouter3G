@@ -75,7 +75,7 @@ jobs:
           cargo install cross --locked || true
           export PATH="$CARGO_HOME/bin:$PATH"
           cd rust
-          cross build --release --target mipsel-unknown-linux-gnu
+          cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort
 
       - name: Package
         env:

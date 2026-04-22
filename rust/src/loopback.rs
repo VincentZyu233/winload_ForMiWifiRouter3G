@@ -4,7 +4,7 @@
 //!
 //! 此模块仅在 Windows 平台编译。非 Windows 平台下提供空实现。
 
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 
 /// Npcap 下载地址 (仅 Windows)
@@ -14,24 +14,24 @@ pub const NPCAP_URL: &str = "https://npcap.com/#download";
 /// 回环流量计数器 (线程安全，可在采集线程和主线程之间共享)
 #[derive(Clone)]
 pub struct LoopbackCounters {
-    pub bytes_recv: Arc<AtomicU64>,
-    pub bytes_sent: Arc<AtomicU64>,
+    pub bytes_recv: Arc<AtomicU32>,
+    pub bytes_sent: Arc<AtomicU32>,
 }
 
 impl LoopbackCounters {
     pub fn new() -> Self {
         Self {
-            bytes_recv: Arc::new(AtomicU64::new(0)),
-            bytes_sent: Arc::new(AtomicU64::new(0)),
+            bytes_recv: Arc::new(AtomicU32::new(0)),
+            bytes_sent: Arc::new(AtomicU32::new(0)),
         }
     }
 
     pub fn get_recv(&self) -> u64 {
-        self.bytes_recv.load(Ordering::Relaxed)
+        self.bytes_recv.load(Ordering::Relaxed) as u64
     }
 
     pub fn get_sent(&self) -> u64 {
-        self.bytes_sent.load(Ordering::Relaxed)
+        self.bytes_sent.load(Ordering::Relaxed) as u64
     }
 }
 
@@ -174,7 +174,7 @@ pub mod platform {
 
                     // 获取 IP 包长度 (跳过 4 字节的 DLT_NULL 头)
                     let ip_payload = &data[4..];
-                    let pkt_len = ip_payload.len() as u64;
+                    let pkt_len = ip_payload.len() as u32;
 
                     if ip_payload.is_empty() {
                         continue;

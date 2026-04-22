@@ -1,2 +1,2 @@
 [target.mipsel-unknown-linux-gnu]
-build-std = true
+build-std = false
