@@ -1,47 +1,72 @@
-## Build Step
+## Local Reproduction (WSL Debian 13)
+
+Reproduce the GitHub Actions CI pipeline locally. The CI uses `cross` + Docker to cross-compile for MIPS — here we replicate the same steps on a WSL Debian 13 (x86_64) machine.
+
+> Reference: [`.github/workflows/build_mips.yml`](.github/workflows/build_mips.yml)
+
+### Step 1 — Install Rust nightly + rust-src
+
+CI uses `dtolnay/rust-toolchain@master` with `toolchain: nightly` and `components: rust-src`. Locally:
+
 ```bash
-proxychains4 wget https://downloads.openwrt.org/releases/23.05.4/targets/ramips/mt7621/openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz
-# or download from tsinghua tuna mirror cdn:
-wget https://mirrors.tuna.tsinghua.edu.cn/openwrt/releases/23.05.4/targets/ramips/mt7621/openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+# Install rustup (skip if already installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
 
-tar -xJf openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz
-cd openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64
-# cd /root/mips-sdk/openwrt-sdk-23.05.4-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64
-ls
-pwd
-# find dir of toolchains
-export SDK_PATH=$(pwd)
-export TOOLCHAIN_PATH=$SDK_PATH/staging_dir/toolchain-mipsel_24kc_gcc-12.3.0_musl
-export PATH=$TOOLCHAIN_PATH/bin:$PATH
-export STAGING_DIR=$SDK_PATH/staging_dir
-export SYSROOT=$SDK_PATH/staging_dir/toolchain-mipsel_24kc_gcc-12.3.0_musl
-
-cd ..
-git clone https://gitee.com/vincent-zyu/winload
-cd ./winload/rust
-cd /root/aaa_from_git_aaa/winload_ForMiWifiRouter3G/rust
-
-sudo apt install -y gcc-mipsel-linux-gnu musl-tools
-
-proxychains4 bash
-# export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
-# export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
-unset RUSTUP_DIST_SERVER
-unset RUSTUP_UPDATE_ROOT
-proxychains4 rustup self update
-# proxychains4 rustup install nightly-2024-01-01
-# proxychains4 rustup target add mipsel-unknown-linux-musl
-# proxychains4 rustup +nightly-2024-01-01 target add mipsel-unknown-linux-musl
-
-# RUSTFLAGS="-Zbuild-std=std,panic_abort" \
-# CARGO_TARGET_MIPSEL_UNKNOWN_LINUX_MUSL_LINKER=mipsel-openwrt-linux-gcc \
-# cargo +nightly build --release --target mipsel-unknown-linux-musl
-
-proxychains4 rustup target add mipsel-unknown-linux-gnu
-
-
-
+# Install nightly toolchain with rust-src (required by -Zbuild-std)
+rustup toolchain install nightly
+rustup component add rust-src --toolchain nightly
 ```
+
+### Step 2 — Install cross
+
+CI runs `cargo install cross --locked`. `cross` is a drop-in replacement for `cargo` that internally calls `docker run` to spin up a container with the MIPS toolchain — no manual `docker run` needed:
+
+```bash
+cargo install cross --locked
+```
+
+### Step 3 — Build
+
+This mirrors the CI step "Build MIPS binary using cross + Docker":
+
+```bash
+git clone https://github.com/VincentZyu233/winload_ForMiWifiRouter3G.git
+cd winload_ForMiWifiRouter3G/rust
+cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort
+```
+
+> `cross` will automatically pull the Docker image `ghcr.io/cross-rs/mipsel-unknown-linux-gnu:*` on the first run. This may take a few minutes.
+
+### Step 4 — Verify
+
+```bash
+file target/mipsel-unknown-linux-gnu/release/winload
+# Expected: ELF 32-bit LSB executable, MIPS, MIPS32 ...
+
+ls -lh target/mipsel-unknown-linux-gnu/release/winload
+```
+
+### CI vs Local Comparison
+
+| Step | GitHub Actions CI | Local WSL Debian 13 |
+|------|-------------------|---------------------|
+| Rust toolchain | `dtolnay/rust-toolchain@master` (nightly + rust-src) | `rustup toolchain install nightly` + `rustup component add rust-src` |
+| Docker | Pre-installed on `ubuntu-latest` runner | Docker Engine must be installed beforehand |
+| Docker Buildx | `docker/setup-buildx-action@v3` | `docker-buildx-plugin` (installed with Docker) |
+| cross | `cargo install cross --locked` | Same |
+| Build command | `cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort` | Same |
+
+### Test Environment
+
+| Item | Value |
+|------|-------|
+| Host OS | Debian GNU/Linux 13 (trixie) x86_64 |
+| Kernel | Linux 6.6.87.2-microsoft-standard-WSL2 |
+| Platform | WSL2 on Windows 11 |
+| CPU | 12th Gen Intel Core i5-12400F (12 cores) |
+
+---
 
 ![winload](https://socialify.git.ci/VincentZyu233/winload/image?custom_language=Rust&description=1&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F250448479%3Fs%3D200%26v%3D4&name=1&owner=1&pulls=1&stargazers=1&theme=Auto)
 

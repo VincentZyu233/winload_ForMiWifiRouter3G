@@ -71,6 +71,7 @@ jobs:
       - name: Build MIPS binary using cross + Docker
         env:
           CARGO_HOME: /opt/hostedtoolcache/Rust
+          RUSTFLAGS: "-C target-feature=+crt-static"
         run: |
           cargo install cross --locked || true
           export PATH="$CARGO_HOME/bin:$PATH"

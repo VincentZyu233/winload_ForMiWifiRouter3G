@@ -1,3 +1,73 @@
+## 本地复现（WSL Debian 13）
+
+在本地复现 GitHub Actions CI 的构建流程。CI 使用 `cross` + Docker 进行 MIPS 交叉编译 —— 以下步骤在 WSL Debian 13 (x86_64) 上重现相同的过程。
+
+> 参考：[`.github/workflows/build_mips.yml`](.github/workflows/build_mips.yml)
+
+### 步骤一 —— 安装 Rust nightly + rust-src
+
+CI 使用 `dtolnay/rust-toolchain@master`，配置 `toolchain: nightly` 和 `components: rust-src`。本地对应：
+
+```bash
+# 安装 rustup（已安装则跳过）
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+# 安装 nightly 工具链和 rust-src（-Zbuild-std 需要）
+rustup toolchain install nightly
+rustup component add rust-src --toolchain nightly
+```
+
+### 步骤二 —— 安装 cross
+
+CI 运行 `cargo install cross --locked`。`cross` 是 `cargo` 的替代品，内部自动调用 `docker run` 启动包含 MIPS 工具链的容器进行编译，用户无需手动执行 `docker run`：
+
+```bash
+cargo install cross --locked
+```
+
+### 步骤三 —— 构建
+
+对应 CI 中的 "Build MIPS binary using cross + Docker" 步骤：
+
+```bash
+git clone https://github.com/VincentZyu233/winload_ForMiWifiRouter3G.git
+cd winload_ForMiWifiRouter3G/rust
+cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort
+```
+
+> `cross` 首次运行时会自动拉取 Docker 镜像 `ghcr.io/cross-rs/mipsel-unknown-linux-gnu:*`，可能需要几分钟。
+
+### 步骤四 —— 验证
+
+```bash
+file target/mipsel-unknown-linux-gnu/release/winload
+# 预期输出：ELF 32-bit LSB executable, MIPS, MIPS32 ...
+
+ls -lh target/mipsel-unknown-linux-gnu/release/winload
+```
+
+### CI 与本地对照
+
+| 步骤 | GitHub Actions CI | 本地 WSL Debian 13 |
+|------|-------------------|---------------------|
+| Rust 工具链 | `dtolnay/rust-toolchain@master` (nightly + rust-src) | `rustup toolchain install nightly` + `rustup component add rust-src` |
+| Docker | `ubuntu-latest` runner 预装 | 需提前安装 Docker Engine |
+| Docker Buildx | `docker/setup-buildx-action@v3` | `docker-buildx-plugin`（随 Docker 一起安装） |
+| cross | `cargo install cross --locked` | 相同 |
+| 构建命令 | `cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort` | 相同 |
+
+### 测试环境
+
+| 项目 | 值 |
+|------|------|
+| 宿主系统 | Debian GNU/Linux 13 (trixie) x86_64 |
+| 内核 | Linux 6.6.87.2-microsoft-standard-WSL2 |
+| 平台 | Windows 11 上的 WSL2 |
+| CPU | 12th Gen Intel Core i5-12400F (12 cores) |
+
+---
+
 ![winload](https://socialify.git.ci/VincentZyu233/winload/image?custom_language=Rust&description=1&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F250448479%3Fs%3D200%26v%3D4&name=1&owner=1&pulls=1&stargazers=1&theme=Auto)
 
 # Winload <img src="https://github.com/user-attachments/assets/62fec846-0442-47f6-bbba-78acdc8803ef" height="32px">
