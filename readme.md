@@ -1,70 +1,60 @@
-## Local Reproduction (WSL Debian 13)
+# Winload for MiWiFi Router 3G (MIPS)
 
-Reproduce the GitHub Actions CI pipeline locally. The CI uses `cross` + Docker to cross-compile for MIPS — here we replicate the same steps on a WSL Debian 13 (x86_64) machine.
+> Fork of [winload](https://github.com/VincentZyuApps/winload) — cross-compiled for **Xiaomi Mi Router 3G** (MediaTek MT7621, MIPS32 Little-Endian, OpenWrt 23.05).
 
-> Reference: [`.github/workflows/build_mips.yml`](.github/workflows/build_mips.yml)
+![Router Info](docs/小米路由器的fastfetch和uname-a和etc-os-release信息呢.png)
 
-### Step 1 — Install Rust nightly + rust-src
+> Want to know more about this router (appearance, where to buy, etc.)? See [this discussion](https://github.com/fastfetch-cli/fastfetch/discussions/2271).
 
-CI uses `dtolnay/rust-toolchain@master` with `toolchain: nightly` and `components: rust-src`. Locally:
+| TUI Graph | F3 Debug Info |
+|:-:|:-:|
+| ![TUI Graph](docs/winload在小米路由器R3G的字符画图表.preview.png) | ![F3 Debug](docs/winload在小米路由器R3G的F3信息.preview.png) |
 
-```bash
-# Install rustup (skip if already installed)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-
-# Install nightly toolchain with rust-src (required by -Zbuild-std)
-rustup toolchain install nightly
-rustup component add rust-src --toolchain nightly
-```
-
-### Step 2 — Install cross
-
-CI runs `cargo install cross --locked`. `cross` is a drop-in replacement for `cargo` that internally calls `docker run` to spin up a container with the MIPS toolchain — no manual `docker run` needed:
+## Quick Start
 
 ```bash
-cargo install cross --locked
+# Download from GitHub Releases
+# https://github.com/VincentZyu233/winload_ForMiWifiRouter3G/releases
+
+scp ./winload-*-mipsel-unknown-linux-musl root@<router-ip>:/usr/bin/winload
+chmod +x /usr/bin/winload
+winload
 ```
 
-### Step 3 — Build
-
-This mirrors the CI step "Build MIPS binary using cross + Docker":
-
-```bash
-git clone https://github.com/VincentZyu233/winload_ForMiWifiRouter3G.git
-cd winload_ForMiWifiRouter3G/rust
-cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort
-```
-
-> `cross` will automatically pull the Docker image `ghcr.io/cross-rs/mipsel-unknown-linux-gnu:*` on the first run. This may take a few minutes.
-
-### Step 4 — Verify
-
-```bash
-file target/mipsel-unknown-linux-gnu/release/winload
-# Expected: ELF 32-bit LSB executable, MIPS, MIPS32 ...
-
-ls -lh target/mipsel-unknown-linux-gnu/release/winload
-```
-
-### CI vs Local Comparison
-
-| Step | GitHub Actions CI | Local WSL Debian 13 |
-|------|-------------------|---------------------|
-| Rust toolchain | `dtolnay/rust-toolchain@master` (nightly + rust-src) | `rustup toolchain install nightly` + `rustup component add rust-src` |
-| Docker | Pre-installed on `ubuntu-latest` runner | Docker Engine must be installed beforehand |
-| Docker Buildx | `docker/setup-buildx-action@v3` | `docker-buildx-plugin` (installed with Docker) |
-| cross | `cargo install cross --locked` | Same |
-| Build command | `cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort` | Same |
-
-### Test Environment
+## Build Info
 
 | Item | Value |
 |------|-------|
-| Host OS | Debian GNU/Linux 13 (trixie) x86_64 |
-| Kernel | Linux 6.6.87.2-microsoft-standard-WSL2 |
-| Platform | WSL2 on Windows 11 |
-| CPU | 12th Gen Intel Core i5-12400F (12 cores) |
+| Target | `mipsel-unknown-linux-musl` |
+| Toolchain | Rust nightly + `-Zbuild-std=std,panic_abort` |
+| Linking | Dynamic (musl, soft-float) |
+| Float | Software (`mipsel-linux-muslsf-gcc`) |
+| Tool | `cross` + Docker |
+| CI | [`.github/workflows/build_mips.yml`](.github/workflows/build_mips.yml) |
+
+## Pitfalls & Fixes
+
+Cross-compiling a Rust TUI app for OpenWrt MIPS is non-trivial. Here's what we hit and how we fixed it:
+
+| Problem | Root Cause | Fix |
+|---------|-----------|-----|
+| `AtomicU64` compile error | MIPS32 has no 64-bit atomic instructions | `AtomicU64` -> `AtomicU32` in `loopback.rs` |
+| Binary "not found" on router | Linked against glibc (`/lib/ld.so.1`), OpenWrt uses musl | Switch target to `mipsel-unknown-linux-musl` |
+| Segfault on startup | Default `mipsel-linux-gnu` uses hard-float; MT7621 / OpenWrt requires soft-float | Use `musl` target (cross image linker is `mipsel-linux-muslsf-gcc`, already soft-float) |
+| TUI "Not a tty" (ENOTTY) | crossterm uses `rustix` for direct syscalls; `rustix`'s MIPS termios ioctl may not work correctly under dropbear SSH | Enable crossterm `libc` feature to go through musl C library instead |
+| TUI "Not a tty" from `window_size()` | crossterm hardcodes `File::open("/dev/tty")` for `TIOCGWINSZ` ioctl; `/dev/tty` under dropbear doesn't support it | Bypass `ratatui::init()`, use `libc::ioctl(STDIN_FILENO, TIOCGWINSZ)` directly |
+
+## Verify
+
+```bash
+file winload-*-mipsel-unknown-linux-musl
+# Expected: ELF 32-bit LSB pie executable, MIPS, MIPS32 rel2 ... interpreter /lib/ld-musl-mipsel-sf.so.1
+
+ls -lah winload-*-mipsel-unknown-linux-musl
+
+sha256sum winload-*-mipsel-unknown-linux-musl
+# Compare with the sha256 hash on GitHub Releases page
+```
 
 ---
 

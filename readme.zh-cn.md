@@ -1,70 +1,60 @@
-## 本地复现（WSL Debian 13）
+# Winload for 小米路由器 3G (MIPS)
 
-在本地复现 GitHub Actions CI 的构建流程。CI 使用 `cross` + Docker 进行 MIPS 交叉编译 —— 以下步骤在 WSL Debian 13 (x86_64) 上重现相同的过程。
+> [winload](https://github.com/VincentZyuApps/winload) 的 Fork —— 为**小米路由器 3G**（联发科 MT7621, MIPS32 小端序, OpenWrt 23.05）交叉编译。
 
-> 参考：[`.github/workflows/build_mips.yml`](.github/workflows/build_mips.yml)
+![路由器信息](docs/小米路由器的fastfetch和uname-a和etc-os-release信息呢.png)
 
-### 步骤一 —— 安装 Rust nightly + rust-src
+> 想了解更多路由器信息（外观、闲鱼商品页等）？请看[这个讨论](https://github.com/fastfetch-cli/fastfetch/discussions/2271)。
 
-CI 使用 `dtolnay/rust-toolchain@master`，配置 `toolchain: nightly` 和 `components: rust-src`。本地对应：
+| TUI 图表 | F3 调试信息 |
+|:-:|:-:|
+| ![TUI 图表](docs/winload在小米路由器R3G的字符画图表.preview.png) | ![F3 调试](docs/winload在小米路由器R3G的F3信息.preview.png) |
 
-```bash
-# 安装 rustup（已安装则跳过）
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-
-# 安装 nightly 工具链和 rust-src（-Zbuild-std 需要）
-rustup toolchain install nightly
-rustup component add rust-src --toolchain nightly
-```
-
-### 步骤二 —— 安装 cross
-
-CI 运行 `cargo install cross --locked`。`cross` 是 `cargo` 的替代品，内部自动调用 `docker run` 启动包含 MIPS 工具链的容器进行编译，用户无需手动执行 `docker run`：
+## 快速开始
 
 ```bash
-cargo install cross --locked
+# 从 GitHub Releases 下载
+# https://github.com/VincentZyu233/winload_ForMiWifiRouter3G/releases
+
+scp ./winload-*-mipsel-unknown-linux-musl root@<路由器IP>:/usr/bin/winload
+chmod +x /usr/bin/winload
+winload
 ```
 
-### 步骤三 —— 构建
-
-对应 CI 中的 "Build MIPS binary using cross + Docker" 步骤：
-
-```bash
-git clone https://github.com/VincentZyu233/winload_ForMiWifiRouter3G.git
-cd winload_ForMiWifiRouter3G/rust
-cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort
-```
-
-> `cross` 首次运行时会自动拉取 Docker 镜像 `ghcr.io/cross-rs/mipsel-unknown-linux-gnu:*`，可能需要几分钟。
-
-### 步骤四 —— 验证
-
-```bash
-file target/mipsel-unknown-linux-gnu/release/winload
-# 预期输出：ELF 32-bit LSB executable, MIPS, MIPS32 ...
-
-ls -lh target/mipsel-unknown-linux-gnu/release/winload
-```
-
-### CI 与本地对照
-
-| 步骤 | GitHub Actions CI | 本地 WSL Debian 13 |
-|------|-------------------|---------------------|
-| Rust 工具链 | `dtolnay/rust-toolchain@master` (nightly + rust-src) | `rustup toolchain install nightly` + `rustup component add rust-src` |
-| Docker | `ubuntu-latest` runner 预装 | 需提前安装 Docker Engine |
-| Docker Buildx | `docker/setup-buildx-action@v3` | `docker-buildx-plugin`（随 Docker 一起安装） |
-| cross | `cargo install cross --locked` | 相同 |
-| 构建命令 | `cross build --release --target mipsel-unknown-linux-gnu -Zbuild-std=std,panic_abort` | 相同 |
-
-### 测试环境
+## 构建信息
 
 | 项目 | 值 |
 |------|------|
-| 宿主系统 | Debian GNU/Linux 13 (trixie) x86_64 |
-| 内核 | Linux 6.6.87.2-microsoft-standard-WSL2 |
-| 平台 | Windows 11 上的 WSL2 |
-| CPU | 12th Gen Intel Core i5-12400F (12 cores) |
+| 目标 | `mipsel-unknown-linux-musl` |
+| 工具链 | Rust nightly + `-Zbuild-std=std,panic_abort` |
+| 链接方式 | 动态链接 (musl, soft-float) |
+| 浮点 | 软浮点 (`mipsel-linux-muslsf-gcc`) |
+| 构建工具 | `cross` + Docker |
+| CI | [`.github/workflows/build_mips.yml`](.github/workflows/build_mips.yml) |
+
+## 踩坑记录
+
+给 OpenWrt MIPS 交叉编译 Rust TUI 程序并不简单，以下是遇到的问题和解决方案：
+
+| 问题 | 根本原因 | 解决方案 |
+|------|---------|---------|
+| `AtomicU64` 编译报错 | MIPS32 没有 64 位原子指令 | `loopback.rs` 中 `AtomicU64` -> `AtomicU32` |
+| 路由器上运行提示 "not found" | 链接了 glibc（`/lib/ld.so.1`），OpenWrt 用的是 musl | 切换目标为 `mipsel-unknown-linux-musl` |
+| 启动时段错误 (Segfault) | `mipsel-linux-gnu` 默认硬浮点；MT7621 / OpenWrt 需要软浮点 | 使用 `musl` 目标（cross 镜像的链接器 `mipsel-linux-muslsf-gcc` 已经是软浮点） |
+| TUI 报错 "Not a tty" (ENOTTY) | crossterm 默认用 `rustix` 做直接系统调用；在 dropbear SSH 下 MIPS 的 termios ioctl 可能不正确 | 启用 crossterm 的 `libc` feature，走 musl C 库 |
+| `window_size()` 报 "Not a tty" | crossterm 硬编码 `File::open("/dev/tty")` 获取窗口大小；dropbear 下 `/dev/tty` 的 ioctl 不支持 | 绕过 `ratatui::init()`，直接用 `libc::ioctl(STDIN_FILENO, TIOCGWINSZ)` |
+
+## 校验
+
+```bash
+file winload-*-mipsel-unknown-linux-musl
+# 预期：ELF 32-bit LSB pie executable, MIPS, MIPS32 rel2 ... interpreter /lib/ld-musl-mipsel-sf.so.1
+
+ls -lah winload-*-mipsel-unknown-linux-musl
+
+sha256sum winload-*-mipsel-unknown-linux-musl
+# 与 GitHub Releases 页面上的 sha256 哈希值对比
+```
 
 ---
 
