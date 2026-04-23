@@ -75,7 +75,7 @@ jobs:
           cargo install cross --locked || true
           export PATH="$CARGO_HOME/bin:$PATH"
           cd rust
-          RUSTFLAGS="-C target-feature=+soft-float" cross build --release --target mipsel-unknown-linux-musl -Zbuild-std=std,panic_abort
+          RUSTFLAGS="-C target-feature=+soft-float,+crt-static" cross build --release --target mipsel-unknown-linux-musl -Zbuild-std=std,panic_abort
 
       - name: Package
         env:
