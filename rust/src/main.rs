@@ -17,7 +17,7 @@ mod loopback;
 mod stats;
 mod ui;
 
-use std::io;
+use std::io::{self, Write};
 use std::time::{Duration, Instant};
 
 use clap::{CommandFactory, FromArgMatches, Parser};
@@ -300,7 +300,7 @@ fn run(terminal: &mut ratatui::DefaultTerminal, args: Args) -> io::Result<()> {
             }
             Err(e) => {
                 // 恢复终端后打印错误
-                ratatui::restore();
+                restore_terminal();
                 eprintln!("Error: Failed to start loopback capture:\n{e}");
                 std::process::exit(1);
             }
@@ -321,36 +321,43 @@ fn run(terminal: &mut ratatui::DefaultTerminal, args: Args) -> io::Result<()> {
             .unwrap_or_default();
 
         if crossterm::event::poll(timeout)? {
-            if let Event::Key(key) = event::read()? {
-                // Windows 下 crossterm 会产生 Press + Release，只处理 Press
-                if key.kind == KeyEventKind::Press {
-                    match key.code {
-                        KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
-                            return Ok(());
-                        }
-                        KeyCode::Char('c')
-                            if key.modifiers.contains(KeyModifiers::CONTROL) =>
-                        {
-                            return Ok(());
-                        }
-                        KeyCode::Char('=') => {
-                            app.hide_separator = !app.hide_separator;
-                        }
-                        KeyCode::Char('c') => {
-                            app.no_color = !app.no_color;
-                        }
-                        KeyCode::F(3) => {
-                            app.show_debug = !app.show_debug;
-                        }
-                        KeyCode::Right | KeyCode::Down | KeyCode::Tab | KeyCode::Enter => {
-                            app.next_device();
-                        }
-                        KeyCode::Left | KeyCode::Up => {
-                            app.prev_device();
-                        }
-                        _ => {}
+            match event::read()? {
+                Event::Resize(_, _) => {
+                    if let Ok((cols, rows)) = query_terminal_size() {
+                        terminal.resize(ratatui::layout::Rect::new(0, 0, cols, rows))?;
                     }
                 }
+                Event::Key(key) => {
+                    if key.kind == KeyEventKind::Press {
+                        match key.code {
+                            KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
+                                return Ok(());
+                            }
+                            KeyCode::Char('c')
+                                if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                            {
+                                return Ok(());
+                            }
+                            KeyCode::Char('=') => {
+                                app.hide_separator = !app.hide_separator;
+                            }
+                            KeyCode::Char('c') => {
+                                app.no_color = !app.no_color;
+                            }
+                            KeyCode::F(3) => {
+                                app.show_debug = !app.show_debug;
+                            }
+                            KeyCode::Right | KeyCode::Down | KeyCode::Tab | KeyCode::Enter => {
+                                app.next_device();
+                            }
+                            KeyCode::Left | KeyCode::Up => {
+                                app.prev_device();
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                _ => {}
             }
         }
 
@@ -457,9 +464,51 @@ fn main() -> io::Result<()> {
         }
         return Ok(());
     }
-    let mut terminal = ratatui::init();
+    let mut terminal = init_terminal()?;
     let result = run(&mut terminal, args);
-    ratatui::restore();
+    restore_terminal();
     print_system_info();
     result
+}
+
+/// Query terminal size via ioctl on stdin, bypassing crossterm's /dev/tty path
+/// which fails on dropbear SSH (OpenWrt).
+#[cfg(unix)]
+fn query_terminal_size() -> io::Result<(u16, u16)> {
+    unsafe {
+        let mut ws: libc::winsize = std::mem::zeroed();
+        if libc::ioctl(libc::STDIN_FILENO, libc::TIOCGWINSZ, &mut ws) == 0
+            && ws.ws_col > 0
+            && ws.ws_row > 0
+        {
+            return Ok((ws.ws_col, ws.ws_row));
+        }
+    }
+    Err(io::Error::new(io::ErrorKind::Other, "failed to get terminal size"))
+}
+
+#[cfg(not(unix))]
+fn query_terminal_size() -> io::Result<(u16, u16)> {
+    crossterm::terminal::size()
+}
+
+fn init_terminal() -> io::Result<ratatui::DefaultTerminal> {
+    crossterm::terminal::enable_raw_mode()?;
+    crossterm::execute!(io::stdout(), crossterm::terminal::EnterAlternateScreen)?;
+
+    let (cols, rows) = query_terminal_size()
+        .or_else(|_| crossterm::terminal::size())?;
+
+    let backend = ratatui::backend::CrosstermBackend::new(io::stdout());
+    ratatui::Terminal::with_options(
+        backend,
+        ratatui::TerminalOptions {
+            viewport: ratatui::Viewport::Fixed(ratatui::layout::Rect::new(0, 0, cols, rows)),
+        },
+    )
+}
+
+fn restore_terminal() {
+    let _ = crossterm::execute!(io::stdout(), crossterm::terminal::LeaveAlternateScreen);
+    let _ = crossterm::terminal::disable_raw_mode();
 }

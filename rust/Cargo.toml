@@ -12,12 +12,15 @@ path = "src/main.rs"
 
 [dependencies]
 ratatui = "0.29"
-crossterm = { version = "0.28", default-features = false, features = ["bracketed-paste", "events"] }
+crossterm = "0.28"
 sysinfo = "0.32"
 clap = { version = "4", features = ["derive"] }
 
 [target.'cfg(windows)'.dependencies]
 pcap = { version = "2", optional = true }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 [features]
 default = ["npcap"]
